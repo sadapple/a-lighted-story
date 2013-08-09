@@ -1,0 +1,28 @@
+body {
+    color: #fff;
+	background: #000;
+	text-align: center;
+}
+h1 {
+    font-size: 1em;
+}
+#map {
+    width: 960px;
+    height: 540px;
+    border: 10px solid #444;
+    margin: 10px auto;
+}
+#canvas {
+	width: 960px;
+	height: 540px;
+}
+#start, #end {
+    padding: 0 1em;
+}
+input {
+    width: 3em;
+}
+textarea {
+    width: 960px;
+    height: 4em;
+}

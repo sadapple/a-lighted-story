@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf8">
+	<title>地图编辑器 | 明天 | LastLeaf</title>
+	<link rel="stylesheet" type="text/css" href="main.css">
+	<script type="text/javascript" src="jquery.js"></script>
+	<script type="text/javascript" src="main.js"></script>
+</head>
+<body>
+	<div id="wrapper">
+		<h1>明天 - 地图编辑器</h1>
+		<div id="map">
+			<canvas id="canvas" width="160" height="90"></canvas>
+		</div>
+		<div id="settings">
+			<div>
+				<span id="start">起点
+					<input type="number" id="start_x" min="0" max="159">
+					<input type="number" id="start_y" min="0" max="89">
+				</span>
+				<span id="end">终点
+					<input type="number" id="end_x" min="0" max="159">
+					<input type="number" id="end_y" min="0" max="89">
+				</span>
+			</div>
+			<textarea id="lights">(0,0)*10(0,20) acc*1</textarea>
+		</div>
+		<textarea id="code"></textarea>
+	</div>
+</body>
+</html>
