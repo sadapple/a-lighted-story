@@ -5,13 +5,48 @@
 var WIDTH = 960;
 var HEIGHT = 540;
 var USE_ADVANCED_LOADING = (location.protocol !== 'file:');
+var STORAGE_ID = 'tomorrow';
+var STORAGE_VERSION = 1;
 var FONT = ' "文泉驿正黑","微软雅黑","黑体" ';
 
 // global vars
 
-var stage = null;
-var bgmVolume = 1;
-var curBgm = null;
+window.game = {};
+game.settings = null;
+game.stage = null;
+game.volume = 1;
+game.curAudio = null;
+
+// global funcs
+
+game.createTextButton = function(text, fontSize, background, centerX, centerY, width, height, clickFunc){
+	var button = new createjs.Container();
+	var bg = new createjs.Shape();
+	bg.graphics.s(background).f(background).r(-width/2, -height/2, width, height);
+	button.addChild(bg,
+		new createjs.Text(text, fontSize+'px'+FONT, '#888'),
+		new createjs.Text(text, fontSize+'px'+FONT, '#00d2ff')
+	);
+	button.getChildAt(1).lineHeight = height;
+	button.getChildAt(2).lineHeight = height;
+	button.getChildAt(1).textAlign = 'center';
+	button.getChildAt(2).textAlign = 'center';
+	button.getChildAt(1).textBaseline = 'middle';
+	button.getChildAt(2).textBaseline = 'middle';
+	button.getChildAt(2).visible = false;
+	button.x = centerX;
+	button.y = centerY;
+	button.addEventListener('mouseover', function(){
+		button.getChildAt(2).visible = true;
+		button.getChildAt(1).visible = false;
+	});
+	button.addEventListener('mouseout', function(){
+		button.getChildAt(1).visible = true;
+		button.getChildAt(2).visible = false;
+	});
+	button.addEventListener('click', clickFunc);
+	return button;
+};
 
 // show cover
 
@@ -27,7 +62,7 @@ var showCover = function(res){
 	);
 	lastleafLink.getChildAt(1).alpha = 0.8;
 	lastleafLink.getChildAt(2).visible = false;
-	stage.addChild(lastleafLink);
+	game.stage.addChild(lastleafLink);
 	lastleafLink.x = (WIDTH - 144) / 2;
 	lastleafLink.y = HEIGHT - 48 - 20;
 	lastleafLink.addEventListener('mouseover', function(){
@@ -41,47 +76,33 @@ var showCover = function(res){
 	lastleafLink.addEventListener('click', function(){
 		window.open('http://lastleaf.mistymiracle.org/', '_blank');
 	});
-	stage.enableMouseOver();
+	game.stage.enableMouseOver();
 
 	// show subtitle
-	var subtitle = new createjs.Container();
-	var bg = new createjs.Shape();
-	bg.graphics.s('black').f('black').r(-95,-5,190,30);
-	subtitle.addChild(bg,
-		new createjs.Text('改编自同名短篇小说', '20px'+FONT, '#888'),
-		new createjs.Text('改编自同名短篇小说', '20px'+FONT, '#00d2ff')
-	);
-	stage.addChild(subtitle);
-	subtitle.getChildAt(1).textAlign = 'center';
-	subtitle.getChildAt(2).textAlign = 'center';
-	subtitle.x = WIDTH/2;
-	subtitle.y = 420;
-	subtitle.getChildAt(2).visible = false;
-	subtitle.addEventListener('mouseover', function(){
-		subtitle.getChildAt(2).visible = true;
-		subtitle.getChildAt(1).visible = false;
-	});
-	subtitle.addEventListener('mouseout', function(){
-		subtitle.getChildAt(1).visible = true;
-		subtitle.getChildAt(2).visible = false;
-	});
-	subtitle.addEventListener('click', function(){
+	var subtitle = game.createTextButton('改编自同名短篇小说', 20, '#000', WIDTH/2, 430, 190, 30, function(){
 		window.open('http://blog.programet.org/2010/04/%E6%98%8E%E5%A4%A9.html', '_blank');
 	});
+	game.stage.addChild(subtitle);
 
 	// show title
 	var titleImg = new createjs.Bitmap(res.getResult('title'));
-	stage.addChild(titleImg);
+	game.stage.addChild(titleImg);
 	titleImg.x = titleImg.cx = (WIDTH - titleImg.image.width) / 2;
 	titleImg.y = titleImg.cy = 50;
 	titleImg.alpha = 0.8;
 
 	// show progress bar
-	var progressBar = new createjs.Text('—— 不久之后到来 ——', '20px'+FONT, '#888');
-	stage.addChild(progressBar);
+	var progressBar = new createjs.Container();
+	var p = new createjs.Shape();
+	p.graphics.f('#222').r(0, 0, 800, 3);
+	var progressShape = new createjs.Shape();
+	var progress = progressShape.graphics;
+	progress.f('#888').r(0, 0, 0, 3);
+	progressBar.addChild(p, progressShape);
+	game.stage.addChild(progressBar);
 	progressBar.textAlign = 'center';
-	progressBar.x = WIDTH/2;
-	progressBar.y = 300;
+	progressBar.x = (WIDTH-800) / 2;
+	progressBar.y = 287;
 	progressBar.isAlphaUp = false;
 
 	// animation
@@ -100,38 +121,60 @@ var showCover = function(res){
 			progressBar.alpha -= 0.02;
 			if(progressBar.alpha <= 0.5) progressBar.isAlphaUp = true;
 		}
-		stage.update();
+		game.stage.update();
 	};
 	createjs.Ticker.addEventListener('tick', titleAni);
 
 	// start load main resource
-	hint.show('正在载入资源……');
 	var q = new createjs.LoadQueue(USE_ADVANCED_LOADING, 'data/');
 	q.installPlugin(createjs.Sound);
-	q.addEventListener('fileload', function(e){
-		if(e.item.src !== 'audio/the_start_of_night.ogg' && e.item.src !== 'audio/the_start_of_night.mp3') return;
-		if(curBgm) return;
-		curBgm = createjs.Sound.play('titleBgm', createjs.Sound.INTERRUPT_ANY, 1000, 0, -1, bgmVolume*0.4);
-		var ib = curBgm;
-		var iv = bgmVolume*0.4;
-		var io = setInterval(function(){
-			if(ib !== curBgm) {
-				clearInterval(io);
-				return;
-			}
-			iv += 0.2;
-			ib.setVolume(iv);
-			if(iv >= 1) {
-				clearInterval(io);
-			}
-		}, 2000);
+	q.addEventListener('progress', function(e){
+		progress.c().f('#888').r(0, 0, e.progress*800, 3);
 	});
 	q.addEventListener('complete', function(){
-		hint.hide();
-		//resourceLoaded(q);
+		progress.c().f('#888').r(0, 0, 800, 3);
+		// read settings
+		try {
+			game.settings = JSON.parse(localStorage[STORAGE_ID]);
+			if(game.settings.version < STORAGE_VERSION)
+				game.settings.version = STORAGE_VERSION;
+		} catch(e) {
+			game.settings = {
+				version: STORAGE_VERSION
+			};
+			game.settings.musicOn = true;
+		}
+		// show buttons
+		var musicButtonOn = game.createTextButton('音乐：开', 20, '#000', WIDTH/2, 385, 90, 30, function(){
+			musicButtonOn.visible = false;
+			musicButtonOff.visible = true;
+			game.settings.musicOn = false;
+			musicButtonOff.dispatchEvent('mouseover');
+		});
+		var musicButtonOff = game.createTextButton('音乐：关', 20, '#000', WIDTH/2, 385, 90, 30, function(){
+			musicButtonOff.visible = false;
+			musicButtonOn.visible = true;
+			game.settings.musicOn = true;
+			musicButtonOn.dispatchEvent('mouseover');
+		});
+		if(game.settings.musicOn) {
+			musicButtonOff.visible = false;
+			musicButtonOn.visible = true;
+		} else {
+			musicButtonOn.visible = false;
+			musicButtonOff.visible = true;
+		}
+		var startButton = game.createTextButton('开始游戏', 20, '#000', WIDTH/2, 340, 90, 30, function(){
+			document.head.appendChild(q.getResult('levels'));
+		});
+		game.stage.addChild(musicButtonOn, musicButtonOff, startButton);
 	});
 	q.loadManifest([
-		{id:'titleBgm', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'}
+		{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
+		{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
+		{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
+		{id:'bgm4', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
+		{id:'levels', src:'js/levels.js'}
 	]);
 
 };
@@ -142,14 +185,14 @@ document.bindReady(function(){
 
 	// check compatibility
 	hint.show('正在检测浏览器兼容性……');
-	if(HTML5Compatibility.unsupported('DOM/Canvas', 'DOM/Audio', 'DOM/LocalStorage').length) {
+	if(HTML5Compatibility.unsupported('JavaScript/JSON', 'DOM/Canvas', 'DOM/Audio', 'DOM/LocalStorage', 'DOM/AddEventListener').length) {
 		hint.show('你的浏览器不支持本游戏，请使用其他浏览器访问，或下载离线版本');
 		return;
 	}
 
 	// init canvas
 	document.getElementById('wrapper').innerHTML = '<canvas id="main_canvas" width="'+WIDTH+'" height="'+HEIGHT+'"></canvas>';
-	stage = new createjs.Stage('main_canvas');
+	game.stage = new createjs.Stage('main_canvas');
 
 	// load title resource
 	hint.show('正在载入页面……');

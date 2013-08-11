@@ -25,9 +25,9 @@ $(function(){
 		for(var i=0; i<90; i++)
 			for(var j=0; j<160; j++) {
 				if(map[i*160+j])
-					context.fillStyle = "#888";
-				else
 					context.fillStyle = "#000";
+				else
+					context.fillStyle = "#888";
 				context.fillRect(j*6, i*6, 6, 6);
 			}
 		// extra
@@ -156,12 +156,19 @@ $(function(){
 				map[i*160+j] = (e.button?0:1);
 		updateCanvas();
 	})
+	.mouseleave(function(e){
+		$pointMove.hide();
+		$pointSel.hide();
+	})
 	.mouseenter(function(e){
-		if(e.buttons) return;
+		if(e.buttons) {
+			$pointMove.show();
+			$pointSel.show();
+			return;
+		}
 		mouseStart.ed = false;
 		$pointStart.hide();
 		$pointSel.hide();
-		$pointMove.hide();
 	});
 
 	// update canvas

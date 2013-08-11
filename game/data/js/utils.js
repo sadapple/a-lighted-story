@@ -12,6 +12,12 @@
                     return true;
             },
 
+        'JavaScript/JSON':
+            function() {
+                if(typeof(JSON) !== 'undefined')
+                    return true;
+            },
+
         'DOM/Canvas':
             function() {
                 try {
@@ -37,6 +43,12 @@
         'DOM/LocalStorage':
             function() {
                 if(typeof(localStorage) !== 'undefined')
+                    return true;
+            },
+
+        'DOM/AddEventListener':
+            function() {
+                if(typeof(window.addEventListener) !== 'undefined')
                     return true;
             },
 
@@ -131,7 +143,7 @@
 
 // html to text
 window.textToHtml = function(text){
-	return text.replace(/\&/, '&amp;').replace(/\</, '&lt;').replace(/\>/, '&gt;').replace(/(\r|\n|\r\n)/, '<br>');
+	return String(text).replace(/\&/, '&amp;').replace(/\</, '&lt;').replace(/\>/, '&gt;').replace(/(\r|\n|\r\n)/, '<br>');
 };
 
 // hint utils
