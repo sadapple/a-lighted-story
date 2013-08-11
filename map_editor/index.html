@@ -11,21 +11,36 @@
 	<div id="wrapper">
 		<h1>明天 - 地图编辑器</h1>
 		<div id="map">
-			<canvas id="canvas" width="160" height="90"></canvas>
+			<div id="editor">
+				<canvas id="canvas" width="960" height="540"></canvas>
+				<div id="point_move" class="point"></div>
+				<div id="point_selected" class="point"></div>
+				<div id="point_start" class="point"></div>
+			</div>
 		</div>
 		<div id="settings">
 			<div>
+				<span id="extra"><input type="checkbox" id="show_extra" checked> 显示特殊点</span>
 				<span id="start">起点
-					<input type="number" id="start_x" min="0" max="159">
-					<input type="number" id="start_y" min="0" max="89">
+					<input type="number" id="start_x" min="2" max="157" value="2">
+					<input type="number" id="start_y" min="2" max="87" value="2">
 				</span>
 				<span id="end">终点
-					<input type="number" id="end_x" min="0" max="159">
-					<input type="number" id="end_y" min="0" max="89">
+					<input type="number" id="end_x" min="2" max="158" value="158">
+					<input type="number" id="end_y" min="2" max="88" value="88">
+				</span>
+				<span id="current">当前
+					<input type="number" id="current_x" min="0" max="159" value="0" disabled>
+					<input type="number" id="current_y" min="0" max="89" value="0" disabled>
 				</span>
 			</div>
-			<textarea id="lights">(0,0)*10(0,20) acc*1</textarea>
+			障碍<input type="text" id="lights" value="(0,0)*10(0,20)~1">
 		</div>
+		<input type="button" id="generate_code" value="↓ 生成地图代码">
+		<input type="button" id="apply_code" value="↑ 应用地图代码">
+		<input type="button" id="save_code" value="保存以下代码为模板">
+		<input type="button" id="load_code" value="重载模板">
+		<br>
 		<textarea id="code"></textarea>
 	</div>
 </body>

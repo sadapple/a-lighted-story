@@ -5,6 +5,8 @@ body {
 }
 h1 {
     font-size: 1em;
+    line-height: 1em;
+    margin: 0;
 }
 #map {
     width: 960px;
@@ -12,17 +14,50 @@ h1 {
     border: 10px solid #444;
     margin: 10px auto;
 }
+#editor {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
 #canvas {
-	width: 960px;
-	height: 540px;
+	width: 100%;
+	height: 100%;
 }
-#start, #end {
-    padding: 0 1em;
+#extra, #start, #end, #current {
+    margin: 0 1em;
 }
-input {
-    width: 3em;
+input[type="number"] {
+    width: 2em;
+    text-align: right;
+}
+#lights {
+    width: 60em;
+    margin: 0 0.5em;
+    font-family: "monospace";
 }
 textarea {
     width: 960px;
     height: 4em;
+}
+#code {
+    height: 30em;
+}
+
+.point {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    display: none;
+}
+#point_move {
+    background: yellow;
+}
+#point_start {
+    background: red;
+}
+#point_selected {
+    border: 1px solid yellow;
+    margin: -1px;
+    width: auto;
+    height: auto;
 }
