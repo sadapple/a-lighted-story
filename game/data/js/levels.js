@@ -1,5 +1,37 @@
 'use strict';
-(function(){
+
+// consts
+var WIDTH = 960;
+var HEIGHT = 540;
+var FONT = ' "文泉驿正黑","微软雅黑","黑体" ';
+
+// handling a level
+
+var startLevel = function(level){
+
+	// show level words
+	var story = game.words[level].story;
+	var i = 0;
+	var storyText = new createjs.Text('', '30px'+FONT, '#ccc');
+	storyText.textAlign = 'center';
+	storyText.textBaseline = 'middle';
+	storyText.x = WIDTH/2;
+	storyText.y = HEIGHT/2;
+	var storyLoop = function(){
+		// TODO
+	};
+	createjs.Ticker.addEventListener('tick', storyLoop);
+
+	// show 
+	var storyLoopEnd = function(){
+		// TODO
+	};
+
+};
+
+// init game ctrls
+
+game.start = function(){
 
 	// pause and unpause
 	var paused = false;
@@ -13,6 +45,9 @@
 		else pause;
 	};
 	var keyReset = function(){};
+	var keyMusicOn = function(){};
+	var keyVolumeUp = function(){};
+	var keyVolumeDown = function(){};
 	var keyStartAction = function(){};
 	var keyStartUp = function(){};
 	var keyStartDown = function(){};
@@ -28,7 +63,9 @@
 		19: keyPause,
 		27: keyPause,
 		80: keyPause,
-		77: keyPause,
+		77: keyMusicOn,
+		188: keyVolumeDown,
+		190: keyVolumeUp,
 		82: keyReset,
 		32: keyStartAction,
 		38: keyStartUp,
@@ -54,15 +91,19 @@
 	};
 
 	// basic listeners
-
 	window.addEventListener('keydown', function(e){
-		keyDownFunc[e.keyCode]();
+		if(keyDownFunc[e.keyCode])
+			keyDownFunc[e.keyCode]();
 	}, false);
 	window.addEventListener('keydown', function(e){
-		keyUpFunc[e.keyCode]();
+		if(keyUpFunc[e.keyCode])
+			keyUpFunc[e.keyCode]();
 	}, false);
 	window.addEventListener('blur', function(e){
 		pause();
 	}, false);
 
-})();
+	// enter level
+	startLevel(game.settings.curLevel);
+
+};

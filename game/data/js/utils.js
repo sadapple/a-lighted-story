@@ -3,83 +3,83 @@
 // compatibility checker
 
 (function(){
-    // checkers
-    var checkers = {
+	// checkers
+	var checkers = {
 
-        'JavaScript/TypedArray':
-            function() {
-                if(typeof(Uint8Array) !== 'undefined' && typeof(Float64Array) !== 'undefined')
-                    return true;
-            },
+		'JavaScript/TypedArray':
+			function() {
+				if(typeof(Uint8Array) !== 'undefined' && typeof(Float64Array) !== 'undefined')
+					return true;
+			},
 
-        'JavaScript/JSON':
-            function() {
-                if(typeof(JSON) !== 'undefined')
-                    return true;
-            },
+		'JavaScript/JSON':
+			function() {
+				if(typeof(JSON) !== 'undefined')
+					return true;
+			},
 
-        'DOM/Canvas':
-            function() {
-                try {
-                    if(typeof(document.createElement('canvas').getContext) !== 'undefined')
-                        return true;
-                } catch(e) {}
-            },
+		'DOM/Canvas':
+			function() {
+				try {
+					if(typeof(document.createElement('canvas').getContext) !== 'undefined')
+						return true;
+				} catch(e) {}
+			},
 
-        'DOM/Audio':
-            function() {
-                try {
-                    if(typeof(document.createElement('audio').src) !== 'undefined')
-                        return true;
-                } catch(e) {}
-            },
+		'DOM/Audio':
+			function() {
+				try {
+					if(typeof(document.createElement('audio').src) !== 'undefined')
+						return true;
+				} catch(e) {}
+			},
 
-        'DOM/FileReader':
-            function() {
-                if(typeof(FileReader) !== 'undefined' && typeof(URL) !== 'undefined' && typeof(URL.createObjectURL) !== 'undefined')
-                    return true;
-            },
+		'DOM/FileReader':
+			function() {
+				if(typeof(FileReader) !== 'undefined' && typeof(URL) !== 'undefined' && typeof(URL.createObjectURL) !== 'undefined')
+					return true;
+			},
 
-        'DOM/LocalStorage':
-            function() {
-                if(typeof(localStorage) !== 'undefined')
-                    return true;
-            },
+		'DOM/LocalStorage':
+			function() {
+				if(typeof(localStorage) !== 'undefined')
+					return true;
+			},
 
-        'DOM/AddEventListener':
-            function() {
-                if(typeof(window.addEventListener) !== 'undefined')
-                    return true;
-            },
+		'DOM/AddEventListener':
+			function() {
+				if(typeof(window.addEventListener) !== 'undefined')
+					return true;
+			},
 
-        '': function(){ return true; }
-    };
+		'': function(){ return true; }
+	};
 
-    // check function
-    window.HTML5Compatibility = (function(){
-        // select unsupported features from a list (given as array or argument list)
-        var unsupported = function() {
-            var list;
-            if(typeof(arguments[0]) === 'array')
-                list = arguments[0];
-            else
-                list = arguments;
-            var r = [];
-            for(var i=0; i<list.length; i++) {
-                var supported = false;
-                var item = list[i];
-                if(!checkers[item])
-                    throw new Error('Unrecognized compatibility test item: '+list[i]);
-                else if(checkers[item]())
-                    supported = true;
-                if(!supported) r.push(list[item]);
-            }
-            return r;
-        };
-        return {
-            unsupported: unsupported
-        };
-    })();
+	// check function
+	window.HTML5Compatibility = (function(){
+		// select unsupported features from a list (given as array or argument list)
+		var unsupported = function() {
+			var list;
+			if(typeof(arguments[0]) === 'array')
+				list = arguments[0];
+			else
+				list = arguments;
+			var r = [];
+			for(var i=0; i<list.length; i++) {
+				var supported = false;
+				var item = list[i];
+				if(!checkers[item])
+					throw new Error('Unrecognized compatibility test item: '+list[i]);
+				else if(checkers[item]())
+					supported = true;
+				if(!supported) r.push(list[item]);
+			}
+			return r;
+		};
+		return {
+			unsupported: unsupported
+		};
+	})();
 })();
 
 // document.ready partly from jQuery
@@ -90,7 +90,7 @@
 	var funcs = [];
 
 	var executeReady = function(){
-        if(funcs === null) return;
+		if(funcs === null) return;
 		for(var i = 0; i < funcs.length; i++)
 			funcs[i].call(window);
 		funcs = null;
@@ -129,9 +129,9 @@
 			executeReady();
 		})();
 	} else {
-    	// A fallback to window.onload, that will always work
-    	window.onload = executeReady;
-    }
+		// A fallback to window.onload, that will always work
+		window.onload = executeReady;
+	}
 
 	document.bindReady = function(func){
 		if(funcs !== null)
@@ -149,66 +149,73 @@ window.textToHtml = function(text){
 // hint utils
 
 document.bindReady(function(){
-    window.hint = (function(){
-    	var ANIMATION_STEP_LENGTH = 8;
-        var ANIMATION_INTERVAL = 40;
-    	var div = document.getElementById('hint');
-        var curTop = 0;
-    	var isShown = true;
-        var aniObj = false;
-        var aniFrame = function(){
-            if(isShown) {
-                curTop = curTop + ANIMATION_STEP_LENGTH;
-                if(curTop > 0) {
-                    curTop = 0;
-                    clearInterval(aniObj);
-                    aniObj = false;
-                }
-                div.style.top = curTop + 'px';
-            } else {
-                curTop = curTop - ANIMATION_STEP_LENGTH;
-                if(curTop <= -div.clientHeight) {
-                    div.style.display = 'none';
-                    clearInterval(aniObj);
-                    aniObj = false;
-                }
-                div.style.top = curTop + 'px';
-            }
-        };
-        var aniStart = function(){
-            if(aniObj) return;
-            aniObj = setInterval(aniFrame, ANIMATION_INTERVAL);
-            div.style.display = 'block';
-        };
-    	var show = function(text){
-    		div.innerHTML = textToHtml(text);
-            if(!isShown) {
-                isShown = true;
-                curTop = -div.clientHeight;
-                div.style.top = curTop + 'px';
-                aniStart();
-            }
-    	};
-        var hide = function(){
-            if(isShown) {
-                isShown = false;
-                aniStart();
-            }
-        };
-    	return {
-    		show: show,
-    		hide: hide
-    	};
-    })();
+	window.hint = (function(){
+		var ANIMATION_STEP_LENGTH = 8;
+		var ANIMATION_INTERVAL = 40;
+		var div = document.getElementById('hint');
+		var curTop = 0;
+		var isShown = true;
+		var aniObj = false;
+		var timeoutObj = false;
+		var aniFrame = function(){
+			if(isShown) {
+				curTop = curTop + ANIMATION_STEP_LENGTH;
+				if(curTop > 0) {
+					curTop = 0;
+					clearInterval(aniObj);
+					aniObj = false;
+				}
+				div.style.top = curTop + 'px';
+			} else {
+				curTop = curTop - ANIMATION_STEP_LENGTH;
+				if(curTop <= -div.clientHeight) {
+					div.style.display = 'none';
+					clearInterval(aniObj);
+					aniObj = false;
+				}
+				div.style.top = curTop + 'px';
+			}
+		};
+		var aniStart = function(){
+			if(aniObj) return;
+			aniObj = setInterval(aniFrame, ANIMATION_INTERVAL);
+		};
+		var show = function(text, timeout){
+			div.innerHTML = textToHtml(text);
+			if(!isShown) {
+				isShown = true;
+				div.style.display = 'block';
+				curTop = -div.clientHeight;
+				div.style.top = curTop + 'px';
+				aniStart();
+			}
+			if(timeoutObj)
+				clearTimeout(timeoutObj);
+			if(!timeout) return;
+			timeoutObj = setTimeout(hide, timeout);
+		};
+		var hide = function(){
+			if(isShown) {
+				isShown = false;
+				aniStart();
+			}
+			if(timeoutObj)
+				clearTimeout(timeoutObj);
+		};
+		return {
+			show: show,
+			hide: hide
+		};
+	})();
 });
 
 // wrapper resize
 
 document.bindReady(function(){
-    var wrapper = document.getElementById('wrapper');
-    var resizeWrapper = function(){
-        wrapper.style.height = document.documentElement.clientHeight + 'px';
-    };
-    window.onresize = resizeWrapper;
-    resizeWrapper();
+	var wrapper = document.getElementById('wrapper');
+	var resizeWrapper = function(){
+		wrapper.style.height = document.documentElement.clientHeight + 'px';
+	};
+	window.onresize = resizeWrapper;
+	resizeWrapper();
 });
