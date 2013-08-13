@@ -6,7 +6,7 @@ var FPS = 25;
 var WIDTH = 960;
 var HEIGHT = 540;
 var FONT = ' "文泉驿正黑","微软雅黑","黑体" ';
-var USE_ADVANCED_LOADING = (location.protocol !== 'file:');
+var USE_ADVANCED_LOADING = false;
 var STORAGE_ID = 'tomorrow';
 var STORAGE_VERSION = 1;
 var DEFAULT_SETTINGS = {
@@ -21,7 +21,7 @@ var DEFAULT_SETTINGS = {
 window.game = {};
 game.settings = null;
 game.stage = null;
-game.curAudio = null;
+game.curMusic = -1;
 
 // global funcs
 
@@ -172,9 +172,9 @@ var showCover = function(res){
 	q.addEventListener('complete', function(){
 		progress.c().f('#888').r(0, 0, 800, 3);
 		// get results
-		if(USE_ADVANCED_LOADING) {
-			game.maps = q.getResult('maps');
-			game.words = JSON.parse(q.getResult('words'));
+		if(location.protocol !== 'file:') {
+			game.maps = q.getResult('maps').split('\n');
+			game.words = q.getResult('words');
 		}
 		// read settings
 		try {
@@ -276,38 +276,48 @@ var showCover = function(res){
 				if(game.settings.volume < 100)
 					game.settings.volume += 10;
 				hint.show('音量：'+game.settings.volume, 1000);
-			}
+			} else
+				return;
+			e.preventDefault();
 		};
 		document.body.addEventListener('keydown', coverKeyFunc);
 	});
-	// load data using advanced loading, or directly load for simple loading
-	if(USE_ADVANCED_LOADING) {
-		q.loadFile({id:'maps', type:'text', src:'maps.data'});
-		q.loadFile({id:'words', type:'text', src:'words.data'});
+	if(location.protocol !== 'file:') {
+		// advanced loading
+		q.loadManifest([
+			{id:'maps', type:'text', src:'maps.data'},
+			{id:'words', src:'words.json'},
+			{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
+			{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
+			{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
+			{id:'bgm4', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
+			{src:'js/levels.js'}
+		]);
 	} else {
+		// load text data through xhr
 		var xhr1 = new XMLHttpRequest();
 		xhr1.addEventListener('load', function(){
-			game.maps = xhr1.response;
+			game.maps = xhr1.response.split('\n');
 		}, false);
 		xhr1.open('GET', 'data/maps.data', false);
-		xhr1.overrideMimeType('text/plain');
+		xhr1.overrideMimeType('text/plain; charset=utf8');
 		xhr1.send();
 		var xhr2 = new XMLHttpRequest();
 		xhr2.addEventListener('load', function(){
 			game.words = JSON.parse(xhr2.response);
 		}, false);
-		xhr2.open('GET', 'data/words.data', false);
-		xhr2.overrideMimeType('text/plain');
+		xhr2.open('GET', 'data/words.json', false);
+		xhr2.overrideMimeType('text/plain; charset=utf8');
 		xhr2.send();
+		// load else
+		q.loadManifest([
+			{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
+			{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
+			{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
+			{id:'bgm4', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
+			{src:'js/levels.js'}
+		]);
 	}
-	// load else
-	q.loadManifest([
-		{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
-		{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
-		{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
-		{id:'bgm4', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
-		{src:'js/levels.js'}
-	]);
 
 };
 
