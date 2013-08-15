@@ -43,7 +43,7 @@ $(function(){
 		// parse lights
 		var s = $lights.val().split(/[ \t]+/g);
 		for(var i=0; i<s.length; i++) {
-			var a = s[i].match(/\(([0-9]+)\,([0-9]+)\)\*([0-9]+)\(([0-9]+)\,([0-9]+)\)(~[0-9\.]+|)/);
+			var a = s[i].match(/^\(([0-9]+)\,([0-9]+)\)\*([0-9]+)\(([0-9]+)\,([0-9]+)\)(o[0-9]+|)(~[0-9\.]+|)$/);
 			if(!a) continue;
 			var x = a[1];
 			var y = a[2];
@@ -66,7 +66,14 @@ $(function(){
 			context.font = "16px monospace";
 			context.textAlign = 'center';
 			context.textBaseline = 'middle';
-			context.fillText(a[6].slice(1), x*6, y*6);
+			context.fillText(a[7].slice(1), x*6, y*6);
+			if(a[6]) {
+				context.beginPath();
+				context.arc(x*6, y*6, a[6].slice(1)*6, 0, Math.PI*2);
+				context.lineWidth = 1;
+				context.strokeStyle = '#000';
+				context.stroke();
+			}
 		}
 	};
 
