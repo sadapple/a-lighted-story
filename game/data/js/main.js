@@ -2,7 +2,7 @@
 
 // consts
 
-var FPS = 25;
+var FPS = 32;
 var WIDTH = 960;
 var HEIGHT = 540;
 var FONT = ' "文泉驿正黑","微软雅黑","黑体" ';
@@ -13,7 +13,8 @@ var DEFAULT_SETTINGS = {
 	version: STORAGE_VERSION,
 	musicOn: true,
 	volume: 100,
-	curLevel: 0
+	curLevel: 0,
+	levelReached: 0
 };
 
 // global vars
@@ -220,7 +221,7 @@ var showCover = function(res){
 			// save settings
 			game.saveSettings();
 			// remove key bindings
-			document.body.removeEventListener('keydown', coverKeyFunc);
+			document.body.removeEventListener('keyup', coverKeyFunc);
 			// fade-out everything
 			var b = new createjs.Shape();
 			b.graphics.f('black').r(0,0,WIDTH,HEIGHT);
@@ -280,7 +281,7 @@ var showCover = function(res){
 				return;
 			e.preventDefault();
 		};
-		document.body.addEventListener('keydown', coverKeyFunc);
+		document.body.addEventListener('keyup', coverKeyFunc);
 	});
 	if(location.protocol !== 'file:') {
 		// advanced loading

@@ -1,13 +1,25 @@
 'use strict';
 
 // consts
+
+// graphics
 var WIDTH = 960;
 var HEIGHT = 540;
 var FONT = ' "文泉驿正黑","微软雅黑","黑体" ';
 var ME_R = 12;
 var LIGHT_R_MAX = 50*6;
+
+// game
+var ME_HP_MAX = 1000;
+var ME_MOVE_SPEED = 3;
+var ME_ACTION_SPEED = 6; // no larger than 6
+var ME_ACTION_DAMAGE = 4;
+var ME_ACTION_DIF = Math.PI/8;
+var ME_DAMAGE_PER_R = 1;
+
+// debug
 var DEBUG = {
-	SKIP_TEXT: true,
+	SKIP_TEXT: false,
 	SHOW_FPS: true
 };
 
@@ -107,10 +119,10 @@ var generateLight = function(r, x, y){
 var generateMe = function(){
 	var ss = new createjs.SpriteSheetBuilder();
 	var rmax = ME_R*0.75;
-	var rmin = ME_R/2;
+	var rmin = ME_R*0.25;
 	var rout = ME_R*1.25;
-	var rspeed = (rmax-rmin)/18;
-	var frameCount = 19;
+	var rspeed = (rmax-rmin)/40;
+	var frameCount = 41;
 	var rect = new createjs.Rectangle(-ME_R, -ME_R, ME_R*2, ME_R*2);
 	for(var i=rmax; i>rmin-(1e-6); i-=rspeed)
 		ss.addFrame(generateRound('rgb(128,128,128)',i,rout), rect);
@@ -119,11 +131,36 @@ var generateMe = function(){
 		frames.push(i);
 	for(var i=frameCount-2; i>0; i--)
 		frames.push(i);
-	ss.addAnimation('normal', frames, 'normal', 2);
+	ss.addAnimation('normal', frames, 'normal');
+	var frames = [];
+	for(var i=0; i<frameCount; i+=4)
+		frames.push(i);
+	for(var i=frameCount-2; i>0; i-=4)
+		frames.push(i);
 	ss.addAnimation('fast', frames, 'fast');
 	return new createjs.BitmapAnimation(ss.build());
 };
 var mePicture = generateMe();
+
+// user operations
+
+var userCtrlReset = function(){
+	userCtrl.reset = false;
+	userCtrl.action = false;
+	userCtrl.up = false;
+	userCtrl.down = false;
+	userCtrl.left = false;
+	userCtrl.right = false;
+};
+var userCtrl = {
+	paused: false,
+	reset: false,
+	action: false,
+	up: false,
+	down: false,
+	left: false,
+	right: false
+};
 
 // handling a level
 
@@ -276,8 +313,171 @@ var startLevel = function(level){
 	};
 
 	// show map
-	var map = parseMap(level);
 	var storyLoopEnd = function(){
+		// init
+		var meHp = ME_HP_MAX;
+		var map = parseMap(level);
+		var lights = map.lights;
+		userCtrlReset();
+		// end level
+		var levelEnd = function(endFunc){
+			createjs.Ticker.removeAllEventListeners('tick');
+			var fadingRect = (new createjs.Shape()).set({alpha: 0});
+			fadingRect.graphics.f('black').r(0,0,WIDTH,HEIGHT);
+			game.stage.addChild(fadingRect);
+			var fadingAni = function(){
+				if(fadingRect.alpha >= 1) {
+					createjs.Ticker.removeEventListener('tick', fadingAni);
+					game.stage.removeAllChildren();
+					endFunc();
+					return;
+				}
+				fadingRect.alpha += 0.01;
+				game.stage.update();
+			};
+			createjs.Ticker.addEventListener('tick', fadingAni);
+		};
+		var resetLevel = function(){
+			levelEnd(storyLoopEnd);
+		};
+		var doneLevel = function(){
+			game.settings.curLevel++;
+			if(game.settings.levelReached < game.settings.curLevel)
+				game.settings.levelReached = game.settings.curLevel;
+			game.saveSettings();
+			levelEnd(function(){
+				startLevel(game.settings.curLevel);
+			});
+		};
+		// pause
+		var pauseLayer = new createjs.Container();
+		pauseLayer.addChild( new createjs.Shape(
+			(new createjs.Graphics()).f('rgba(0,0,0,0.7)').r(0,0,WIDTH,HEIGHT)
+		) );
+		var pauseLayerFrame = new createjs.Container();
+		pauseLayer.addChild(pauseLayerFrame);
+		pauseLayerFrame.x = WIDTH/2 - 250;
+		pauseLayerFrame.y = HEIGHT/2 - 150;
+		var pauseLayerBackground = (new createjs.Shape(
+			(new createjs.Graphics()).f('rgba(255,255,255,0.7)').r(0,0,500,300)
+		)).set({filters: [ new createjs.BoxBlurFilter(10,10,1) ]});
+		pauseLayerBackground.cache(-10,-10,520,320);
+		pauseLayerFrame.addChild(pauseLayerBackground);
+		pauseLayerFrame.addChild( (new createjs.Text('已暂停，按“Esc”或“P”键继续', '20px'+FONT, 'black')).set({
+			textAlign: 'center',
+			textBaseline: 'top',
+			x: 250,
+			y: 30
+		}) );
+		var levelLink = function(centerX, centerY, text, selected){
+			if(selected)
+				pauseLayerFrame.addChild( (new createjs.Shape(
+					(new createjs.Graphics()).ss(1).s('rgb(192,192,192)').f('rgb(128,128,128)')
+					.r(-20+centerX,-20+centerY,40,40)
+				)) );
+			pauseLayerFrame.addChild( new createjs.Text(text, '16px'+FONT, 'black').set({
+				textAlign: 'center',
+				textBaseline: 'middle',
+				x: centerX,
+				y: centerY
+			}) );
+		};
+		levelLink(80, 100, 0, true);
+		//for(var i=1; i<=game.settings.levelReached; i++)
+		for(var i=1; i<=19; i++) {
+			var r = Math.floor((i-1)/6) + 1;
+			var c = (i-1)%6 + 2;
+			if(i === 19) {
+				r = 3;
+				c = 8;
+			}
+			levelLink(c*50+30, r*50+50, i, i%3);
+		}
+		var pauseLayerShown = false;
+		createjs.Ticker.addEventListener('tick', function(){
+			if(userCtrl.paused && !pauseLayerShown) {
+				game.stage.addChild(pauseLayer);
+				pauseLayerShown = true;
+			} else if(!userCtrl.paused && pauseLayerShown) {
+				game.stage.removeChild(pauseLayer);
+				pauseLayerShown = false;
+			}
+		});
+		// calc hp
+		createjs.Ticker.addEventListener('tick', function(){
+			if(userCtrl.paused) return;
+			if(userCtrl.action) meHp -= ME_ACTION_DAMAGE;
+			for(var i=0; i<lights.length; i++) {
+				var a = lights[i];
+				var dx = a.x - mePicture.x;
+				var dy = a.y - mePicture.y;
+				var d = Math.sqrt(dx*dx + dy*dy) - ME_R;
+				if(d <= a.r) {
+					if(a.r-d > ME_R*2)
+						meHp -= ME_R*2*ME_DAMAGE_PER_R;
+					else
+						meHp -= (a.r-d)*ME_DAMAGE_PER_R;
+				}
+			}
+			if(meHp <= 0) resetLevel();
+		});
+		// handling moves
+		createjs.Ticker.addEventListener('tick', function(){
+			if(userCtrl.paused) return;
+			// move
+			var x = 0;
+			var y = 0;
+			if(userCtrl.up) y--;
+			if(userCtrl.down) y++;
+			if(userCtrl.left) x--;
+			if(userCtrl.right) x++;
+			if(userCtrl.action) {
+				if(x !== 0 || y !== 0) {
+					var p = 0;
+					if(y === 0 && x === 1) p = 0;
+					else if(y === 0 && x === -1) p = Math.PI;
+					else if(x === 0) p = Math.PI/2;
+					else if(x === -1) p = Math.PI*3/4;
+					else if(x === 1) p = Math.PI/4;
+					if(y === -1) p = -p;
+					p += Math.random()*ME_ACTION_DIF*2 - ME_ACTION_DIF;
+					x = ME_ACTION_SPEED * Math.cos(p);
+					y = ME_ACTION_SPEED * Math.sin(p);
+				}
+			} else {
+				x *= ME_MOVE_SPEED;
+				y *= ME_MOVE_SPEED;
+				if(x !== 0 && y !== 0) {
+					x /= 1.4142136;
+					y /= 1.4142136;
+				}
+			}
+			// check walls
+			if(x || y) {
+				var px = mePicture.x + x;
+				var py = mePicture.y + y;
+				var checkWall = function(x, y){
+					if(x < ME_R || y < ME_R || x >= WIDTH-ME_R || y >= HEIGHT-ME_R) return true;
+					return map.block[ Math.floor(x/6) + Math.floor(y/6)*160 ];
+				};
+				if(checkWall(px, py)) {
+					if(!checkWall(mePicture.x + x, mePicture.y)) {
+						if(y > 0) py = (Math.floor(py/6))*6 - 1e-3;
+						else if(y < 0) py = (Math.floor(py/6)+1)*6;
+					} else if(!checkWall(mePicture.x, mePicture.y + y)) {
+						if(x > 0) px = (Math.floor(px/6))*6 - 1e-3;
+						else if(x < 0) px = (Math.floor(px/6)+1)*6;
+					} else {
+						if(x > 0) px = (Math.floor(px/6))*6 - 1e-3;
+						else if(x < 0) px = (Math.floor(px/6)+1)*6;
+						if(y > 0) py = (Math.floor(py/6))*6 - 1e-3;
+						else if(y < 0) py = (Math.floor(py/6)+1)*6;
+					}
+				}
+				mePicture.x = px;
+				mePicture.y = py;
+			}
+		});
 		// show me
 		game.stage.addChild(mePicture);
 		mePicture.x = map.startX;
@@ -286,10 +486,10 @@ var startLevel = function(level){
 		// show map
 		game.stage.addChild(map.picture);
 		// update lights every tick
-		var lights = map.lights;
 		var lightsLayer = new createjs.Container().set({x:0,y:0});
 		game.stage.addChild(lightsLayer);
 		createjs.Ticker.addEventListener('tick', function(){
+			if(userCtrl.paused) return;
 			// redraw lights
 			lightsLayer.removeAllChildren();
 			for(var i=0; i<lights.length; i++) {
@@ -297,7 +497,7 @@ var startLevel = function(level){
 				// random size
 				var P_SIZE_STATE = 0.06;
 				var P_CHANGE = 0.5;
-				var SIZE_SPEED_MAX = 1;
+				var SIZE_SPEED_MAX = 2;
 				if(a.rmax > a.rmin) {
 					if(Math.random() < P_SIZE_STATE) {
 						var p = Math.random();
@@ -322,7 +522,7 @@ var startLevel = function(level){
 				if(a.r <= a.rmin) a.r = a.rmin;
 				// random moving
 				var P_MOVE_STATE = 0.03;
-				var MOVE_SPEED_MAX = 1;
+				var MOVE_SPEED_MAX = 2;
 				if(a.area) {
 					if(Math.random() < P_MOVE_STATE) {
 						var p = Math.random()*Math.PI*2;
@@ -348,6 +548,55 @@ var startLevel = function(level){
 		});
 		// show clouds
 		cloudsStart();
+		// show hp
+		var hpBackground = new createjs.Shape();
+		hpBackground.graphics.f('black').r(0,0,8,100);
+		hpBackground.filters = [ new createjs.BoxBlurFilter(3,3,1) ];
+		hpBackground.cache(-7,-7,22,114);
+		var hpOutline = new createjs.Shape();
+		hpOutline.graphics.ss(1).s('#fff').f('black').r(0,0,8,100);
+		hpOutline.cache(0,0,8,100);
+		var hpShape = new createjs.Shape();
+		hpShape.graphics.f('#fff').r(0,0,8,100);
+		var hpPicture = new createjs.Container().set({x:50, y:50, alpha:0.3});
+		hpPicture.addChild(hpBackground);
+		hpPicture.addChild(hpOutline);
+		hpPicture.addChild(hpShape);
+		game.stage.addChild(hpPicture);
+		var meHpOri = meHp;
+		var hpShapeAni = 0;
+		var HP_SHAPE_ANI_SPEED = 0.02;
+		createjs.Ticker.addEventListener('tick', function(){
+			if(userCtrl.paused) return;
+			if(hpPicture.alpha <= 0.3)
+				hpShapeAni = 0;
+			if(meHp < meHpOri) {
+				meHpOri = meHp;
+				var h = 100*meHp/ME_HP_MAX;
+				hpShape.graphics.c().f('#fff').r(0,100-h,8,h);
+				if(hpShapeAni <= 0) hpShapeAni = 1;
+			}
+			if(hpPicture.alpha >= 0.6)
+				hpShapeAni = -1;
+			if(hpShapeAni === 1)
+				hpPicture.alpha += HP_SHAPE_ANI_SPEED;
+			else if(hpShapeAni === -1)
+				hpPicture.alpha -= HP_SHAPE_ANI_SPEED;
+		});
+		// fade in
+		var fadingRect = new createjs.Shape().set({alpha: 1});
+		fadingRect.graphics.f('black').r(0,0,WIDTH,HEIGHT);
+		game.stage.addChild(fadingRect);
+		var fadingAni = function(){
+			game.stage.addChild(fadingRect);
+			if(fadingRect.alpha <= 0) {
+				createjs.Ticker.removeEventListener('tick', fadingAni);
+				game.stage.removeChild(fadingRect);
+				return;
+			}
+			fadingRect.alpha -= 0.04;
+		};
+		createjs.Ticker.addEventListener('tick', fadingAni);
 		// update every tick
 		createjs.Ticker.addEventListener('tick', function(){
 			game.stage.update();
@@ -373,7 +622,11 @@ var startLevel = function(level){
 
 // init game ctrls
 
+game.started = false;
+
 game.start = function(){
+	if(game.started) return;
+	game.started = true;
 
 	// update volume
 	var updateVolume = function(){
@@ -388,17 +641,23 @@ game.start = function(){
 	};
 
 	// pause and unpause
-	var paused = false;
-	var pause = function(){};
-	var unpause = function(){};
+	var pause = function(){
+		userCtrl.paused = true;
+	};
+	var unpause = function(){
+		userCtrl.paused = false;
+	};
 
 	// keyboard event handlers
 
 	var keyPause = function(){
-		if(paused) unpause();
-		else pause;
+		if(userCtrl.paused) unpause();
+		else pause();
 	};
-	var keyReset = function(){};
+	var keyReset = function(){
+		if(!userCtrl.paused)
+			userCtrl.reset = true;
+	};
 	var keyMusicOn = function(){
 		game.settings.musicOn = !game.settings.musicOn;
 		updateVolume();
@@ -412,24 +671,41 @@ game.start = function(){
 		updateVolume();
 	};
 	var keyStartAction = function(){};
-	var keyStartUp = function(){};
-	var keyStartDown = function(){};
-	var keyStartLeft = function(){};
-	var keyStartRight = function(){};
-	var keyEndAction = function(){};
-	var keyEndUp = function(){};
-	var keyEndDown = function(){};
-	var keyEndLeft = function(){};
-	var keyEndRight = function(){};
+	var keyStartUp = function(){
+		userCtrl.up = true;
+	};
+	var keyStartDown = function(){
+		userCtrl.down = true;
+	};
+	var keyStartLeft = function(){
+		userCtrl.left = true;
+	};
+	var keyStartRight = function(){
+		userCtrl.right = true;
+	};
+	var keyEndAction = function(){
+		if(!userCtrl.paused) {
+			userCtrl.action = !userCtrl.action;
+			if(userCtrl.action)
+				mePicture.gotoAndPlay('fast');
+			else
+				mePicture.gotoAndPlay('normal');
+		}
+	};
+	var keyEndUp = function(){
+		userCtrl.up = false;
+	};
+	var keyEndDown = function(){
+		userCtrl.down = false;
+	};
+	var keyEndLeft = function(){
+		userCtrl.left = false;
+	};
+	var keyEndRight = function(){
+		userCtrl.right = false;
+	};
 
 	var keyDownFunc = {
-		19: keyPause,
-		27: keyPause,
-		80: keyPause,
-		77: keyMusicOn,
-		188: keyVolumeDown,
-		190: keyVolumeUp,
-		82: keyReset,
 		32: keyStartAction,
 		38: keyStartUp,
 		87: keyStartUp,
@@ -442,6 +718,13 @@ game.start = function(){
 	};
 
 	var keyUpFunc = {
+		19: keyPause,
+		27: keyPause,
+		80: keyPause,
+		77: keyMusicOn,
+		188: keyVolumeDown,
+		190: keyVolumeUp,
+		82: keyReset,
 		32: keyEndAction,
 		38: keyEndUp,
 		87: keyEndUp,
@@ -455,18 +738,27 @@ game.start = function(){
 
 	// basic listeners
 	window.addEventListener('keydown', function(e){
-		if(keyDownFunc[e.keyCode])
+		if(keyDownFunc[e.keyCode]) {
 			keyDownFunc[e.keyCode]();
+			e.preventDefault();
+		}
 	}, false);
-	window.addEventListener('keydown', function(e){
-		if(keyUpFunc[e.keyCode])
+	window.addEventListener('keyup', function(e){
+		if(keyUpFunc[e.keyCode]) {
 			keyUpFunc[e.keyCode]();
+			e.preventDefault();
+		}
 	}, false);
 	window.addEventListener('blur', function(e){
 		pause();
+		userCtrl.up = false;
+		userCtrl.down = false;
+		userCtrl.left = false;
+		userCtrl.right = false;
 	}, false);
 
 	// enter level
+	game.stage.enableMouseOver(0);
 	startLevel(game.settings.curLevel);
 
 };
