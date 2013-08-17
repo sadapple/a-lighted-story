@@ -34,16 +34,16 @@ $(function(){
 		if(!$('#show_extra')[0].checked) return;
 		context.beginPath();
 		context.fillStyle = "blue";
-		context.arc(parseInt($startX.val())*6, parseInt($startY.val())*6, 12, 0, Math.PI*2);
+		context.arc(parseInt($startX.val())*6, parseInt($startY.val())*6, 6, 0, Math.PI*2);
 		context.fill();
 		context.beginPath();
 		context.fillStyle = "green";
-		context.arc(parseInt($endX.val())*6, parseInt($endY.val())*6, 12, 0, Math.PI*2);
+		context.arc(parseInt($endX.val())*6, parseInt($endY.val())*6, 24, 0, Math.PI*2);
 		context.fill();
 		// parse lights
 		var s = $lights.val().split(/[ \t]+/g);
 		for(var i=0; i<s.length; i++) {
-			var a = s[i].match(/^\(([0-9]+)\,([0-9]+)\)\*([0-9]+)\(([0-9]+)\,([0-9]+)\)(o[0-9]+|)(~[0-9\.]+|)$/);
+			var a = s[i].match(/^\(([0-9]+)\,([0-9]+)\)\*([0-9]+)\(([0-9]+)\,([0-9]+)\)(o[0-9]+|)(\~[0-9\.]+|)$/);
 			if(!a) continue;
 			var x = a[1];
 			var y = a[2];
@@ -72,6 +72,11 @@ $(function(){
 				context.arc(x*6, y*6, a[6].slice(1)*6, 0, Math.PI*2);
 				context.lineWidth = 1;
 				context.strokeStyle = '#000';
+				context.stroke();
+				context.beginPath();
+				context.arc(x*6, y*6, a[6].slice(1)*6+rmax*6, 0, Math.PI*2);
+				context.lineWidth = 1;
+				context.strokeStyle = '#404040';
 				context.stroke();
 			}
 		}

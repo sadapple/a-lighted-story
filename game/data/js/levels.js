@@ -145,6 +145,8 @@ var mePicture = generateMe();
 // user operations
 
 var userCtrlReset = function(){
+	userCtrl.paused = false;
+	userCtrl.skip = false;
 	userCtrl.reset = false;
 	userCtrl.action = false;
 	userCtrl.up = false;
@@ -155,6 +157,7 @@ var userCtrlReset = function(){
 var userCtrl = {
 	paused: false,
 	reset: false,
+	skip: false,
 	action: false,
 	up: false,
 	down: false,
@@ -162,9 +165,47 @@ var userCtrl = {
 	right: false
 };
 
+// pause and unpause
+
+var windowFocus = true;
+var pause = function(){
+	userCtrl.paused = true;
+};
+var unpause = function(){
+	userCtrl.paused = false;
+};
+
 // handling a level
 
 var startLevel = function(level){
+	if(!game.maps[level]) {
+		game.curMusic = -1;
+		var curVol = 1;
+		var gameEnd = function(){
+			curVol -= 0.04;
+			if(game.settings.musicOn)
+				createjs.Sound.setVolume(curVol*game.settings.volume/100);
+			if(curVol <= 0) {
+				game.settings.curLevel = 0;
+				game.saveSettings();
+				game.started = false;
+				createjs.Sound.stop();
+				createjs.Ticker.removeAllEventListeners('tick');
+				window.removeEventListener('keydown', game.keyDownFunc);
+				window.removeEventListener('keyup', game.keyUpFunc);
+				window.removeEventListener('blur', game.blurFunc);
+				window.removeEventListener('focus', game.focusFunc);
+				game.showCover();
+			}
+		}
+		createjs.Ticker.addEventListener('tick', gameEnd);
+		return;
+	}
+
+	// save progress
+	if(game.settings.levelReached < game.settings.curLevel)
+		game.settings.levelReached = game.settings.curLevel;
+	game.saveSettings();
 
 	// switch music
 	if(game.curMusic !== game.words[level].chapter) {
@@ -174,6 +215,7 @@ var startLevel = function(level){
 			if(curVol <= 0) {
 				curVol = 0;
 				// switch music
+				createjs.Sound.stop();
 				game.curMusic = game.words[level].chapter;
 				switch(game.curMusic) {
 					case 1:
@@ -210,7 +252,9 @@ var startLevel = function(level){
 		};
 		createjs.Ticker.addEventListener('tick', volDown);
 	} else {
-		setTimeout(storyLoopStart, 1000);
+		setTimeout(function(){
+			storyLoopStart();
+		}, 1000);
 	}
 
 	// story loop
@@ -224,37 +268,54 @@ var startLevel = function(level){
 		storyText.y = HEIGHT/2;
 		storyText.filters = [ new createjs.BoxBlurFilter(1,1,1) ];
 		storyText.cache(-480, -20, 960, 40);
-		game.stage.addChild(storyText);
+		var storyContainer = new createjs.Container();
+		game.stage.addChild(storyContainer);
 		var i = 0;
 		var isFadeIn = true;
 		var FADE_ALPHA_MIN = -1;
 		var FADE_ALPHA_STEP = 0.04;
 		var FADE_ALPHA_MAX_STD = 1.25;
 		var FADE_ALPHA_MAX_PER_CHAR = 0.15;
-		storyText.alpha = -1;
+		storyContainer.alpha = -1;
 		var fadeAlphaMax = 1;
+		userCtrl.skip = false;
 		var storyLoop = function(){
-			if(i >= story.length) {
+			if(i >= story.length || userCtrl.skip) {
+				userCtrl.skip = false;
 				// end loop
 				createjs.Ticker.removeEventListener('tick', storyLoop);
+				game.stage.removeChild(storyContainer);
 				storyLoopEnd();
 				return;
 			}
 			if(isFadeIn) {
 				// init text
-				if(storyText.alpha <= FADE_ALPHA_MIN) {
-					storyText.text = story[i];
-					storyText.cache(-480, -20, 960, 40);
-					fadeAlphaMax = story[i].length * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
+				if(storyContainer.alpha <= FADE_ALPHA_MIN) {
+					storyContainer.removeAllChildren();
+					if(story[i].charAt(0) === '!') {
+						if(story[i].slice(0,5) === '!img:') {
+							fadeAlphaMax = 8 * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
+							var img = game.mainResource.getResult(story[i].slice(5));
+							storyContainer.addChild( new createjs.Bitmap(img).set({
+								x: (WIDTH-img.width)/2,
+								y: (HEIGHT-img.height)/2
+							}) );
+						}
+					} else {
+						storyText.text = story[i];
+						storyText.cache(-480, -20, 960, 40);
+						fadeAlphaMax = story[i].length * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
+						storyContainer.addChild(storyText);
+					}
 				}
 				// fade in
-				storyText.alpha += FADE_ALPHA_STEP;
-				if(storyText.alpha >= fadeAlphaMax)
+				storyContainer.alpha += FADE_ALPHA_STEP;
+				if(storyContainer.alpha >= fadeAlphaMax)
 					isFadeIn = false;
 			} else {
 				// fade out
-				storyText.alpha -= FADE_ALPHA_STEP;
-				if(storyText.alpha <= FADE_ALPHA_MIN) {
+				storyContainer.alpha -= FADE_ALPHA_STEP;
+				if(storyContainer.alpha <= FADE_ALPHA_MIN) {
 					isFadeIn = true;
 					i++;
 				}
@@ -278,6 +339,7 @@ var startLevel = function(level){
 		game.stage.addChild(container);
 		var rounds = [];
 		createjs.Ticker.addEventListener('tick', function(){
+			if(userCtrl.paused) return;
 			if(Math.random() < GEN_P) {
 				var r1 = R1_MIN + Math.random()*(R1_MAX-R1_MIN);
 				var r2 = R2_MIN + Math.random()*(R2_MAX-R2_MIN);
@@ -319,6 +381,7 @@ var startLevel = function(level){
 		var map = parseMap(level);
 		var lights = map.lights;
 		userCtrlReset();
+		if(!windowFocus) pause();
 		// end level
 		var levelEnd = function(endFunc){
 			createjs.Ticker.removeAllEventListeners('tick');
@@ -332,7 +395,7 @@ var startLevel = function(level){
 					endFunc();
 					return;
 				}
-				fadingRect.alpha += 0.01;
+				fadingRect.alpha += 0.02;
 				game.stage.update();
 			};
 			createjs.Ticker.addEventListener('tick', fadingAni);
@@ -342,8 +405,12 @@ var startLevel = function(level){
 		};
 		var doneLevel = function(){
 			game.settings.curLevel++;
-			if(game.settings.levelReached < game.settings.curLevel)
-				game.settings.levelReached = game.settings.curLevel;
+			levelEnd(function(){
+				startLevel(game.settings.curLevel);
+			});
+		};
+		var skipLevel = function(t){
+			game.settings.curLevel = t;
 			game.saveSettings();
 			levelEnd(function(){
 				startLevel(game.settings.curLevel);
@@ -363,50 +430,114 @@ var startLevel = function(level){
 		)).set({filters: [ new createjs.BoxBlurFilter(10,10,1) ]});
 		pauseLayerBackground.cache(-10,-10,520,320);
 		pauseLayerFrame.addChild(pauseLayerBackground);
-		pauseLayerFrame.addChild( (new createjs.Text('已暂停，按“Esc”或“P”键继续', '20px'+FONT, 'black')).set({
+		pauseLayerFrame.addChild(new createjs.Shape(
+			(new createjs.Graphics()).f('rgba(64,64,64,0.7)').r(30,80,440,3)
+		));
+		pauseLayerFrame.addChild( (new createjs.Text('已暂停，按Esc或“P”键继续', '20px'+FONT, 'black')).set({
 			textAlign: 'center',
 			textBaseline: 'top',
 			x: 250,
-			y: 30
+			y: 40
 		}) );
+		pauseLayerFrame.addChild( (new createjs.Text('按方向键或WASD选择关卡，Enter跳转', '16px'+FONT, 'rgb(64,64,64)')).set({
+			textAlign: 'center',
+			textBaseline: 'bottom',
+			x: 250,
+			y: 270
+		}) );
+		var levelLinkFrame = new createjs.Container();
+		pauseLayerFrame.addChild(levelLinkFrame);
+		var levelLinkSelected = 0;
 		var levelLink = function(centerX, centerY, text, selected){
 			if(selected)
-				pauseLayerFrame.addChild( (new createjs.Shape(
-					(new createjs.Graphics()).ss(1).s('rgb(192,192,192)').f('rgb(128,128,128)')
+				levelLinkFrame.addChild( (new createjs.Shape(
+					(new createjs.Graphics()).ss(2).s('rgb(128,128,128)').f('rgb(128,128,128)')
 					.r(-20+centerX,-20+centerY,40,40)
 				)) );
-			pauseLayerFrame.addChild( new createjs.Text(text, '16px'+FONT, 'black').set({
+			else
+				levelLinkFrame.addChild( (new createjs.Shape(
+					(new createjs.Graphics()).ss(2).s('rgb(128,128,128)')
+					.r(-20+centerX,-20+centerY,40,40)
+				)) );
+			levelLinkFrame.addChild( new createjs.Text(text, '16px'+FONT, 'black').set({
 				textAlign: 'center',
 				textBaseline: 'middle',
 				x: centerX,
 				y: centerY
 			}) );
 		};
-		levelLink(80, 100, 0, true);
-		//for(var i=1; i<=game.settings.levelReached; i++)
-		for(var i=1; i<=19; i++) {
-			var r = Math.floor((i-1)/6) + 1;
-			var c = (i-1)%6 + 2;
-			if(i === 19) {
-				r = 3;
-				c = 8;
+		var levelLinksUpdate = function(){
+			levelLinkFrame.removeAllChildren();
+			levelLink(75, 120, 0, !levelLinkSelected);
+			for(var i=1; i<=game.settings.levelReached; i++) {
+				var r = Math.floor((i-1)/6) + 1;
+				var c = (i-1)%6 + 2;
+				if(i === 19) {
+					r = 3;
+					c = 8;
+				}
+				levelLink(c*50+25, r*50+70, i, (i === levelLinkSelected));
 			}
-			levelLink(c*50+30, r*50+50, i, i%3);
-		}
+		};
 		var pauseLayerShown = false;
+		var pauseArrowKey = 3;
 		createjs.Ticker.addEventListener('tick', function(){
+			// show or hide frame
 			if(userCtrl.paused && !pauseLayerShown) {
 				game.stage.addChild(pauseLayer);
 				pauseLayerShown = true;
+				if(game.settings.musicOn)
+					createjs.Sound.setVolume(game.settings.volume*0.003);
+				levelLinkSelected = game.settings.curLevel;
+				levelLinksUpdate();
+				game.stage.update();
 			} else if(!userCtrl.paused && pauseLayerShown) {
 				game.stage.removeChild(pauseLayer);
 				pauseLayerShown = false;
+				if(game.settings.musicOn)
+					createjs.Sound.setVolume(game.settings.volume/100);
+			}
+			if(!userCtrl.paused) {
+				userCtrl.skip = false;
+				return;
+			}
+			pauseArrowKey--;
+			if(pauseArrowKey) return;
+			pauseArrowKey = 3;
+			// update level link
+			if(userCtrl.up && levelLinkSelected>=7 && levelLinkSelected<=18)
+				levelLinkSelected -= 6;
+			if(userCtrl.down && levelLinkSelected>=1 && levelLinkSelected<=12 && levelLinkSelected<game.settings.levelReached-6)
+				levelLinkSelected += 6;
+			if(userCtrl.left && levelLinkSelected>=1) levelLinkSelected--;
+			if(userCtrl.right && levelLinkSelected<game.settings.levelReached) levelLinkSelected++;
+			if(userCtrl.up || userCtrl.down || userCtrl.left || userCtrl.right) {
+				levelLinksUpdate();
+				game.stage.update();
+			}
+			// action
+			if(userCtrl.skip) {
+				userCtrl.skip = false;
+				if(levelLinkSelected === game.settings.curLevel) {
+					setTimeout(function(){
+						unpause();
+						if(game.settings.musicOn)
+							createjs.Sound.setVolume(game.settings.volume/100);
+					}, 0);
+				} else {
+					setTimeout(function(){
+						unpause();
+						if(game.settings.musicOn)
+							createjs.Sound.setVolume(game.settings.volume/100);
+						skipLevel(levelLinkSelected);
+					}, 0);
+				}
 			}
 		});
 		// calc hp
 		createjs.Ticker.addEventListener('tick', function(){
 			if(userCtrl.paused) return;
-			if(userCtrl.action) meHp -= ME_ACTION_DAMAGE;
+			if(userCtrl.action && level > 1) meHp -= ME_ACTION_DAMAGE;
 			for(var i=0; i<lights.length; i++) {
 				var a = lights[i];
 				var dx = a.x - mePicture.x;
@@ -420,8 +551,14 @@ var startLevel = function(level){
 				}
 			}
 			if(meHp <= 0) resetLevel();
+			// check end
+			var dx = map.endX - mePicture.x;
+			var dy = map.endY - mePicture.y;
+			if( dx*dx + dy*dy <= 4*ME_R*ME_R )
+				doneLevel();
 		});
 		// handling moves
+		var actionAni = false;
 		createjs.Ticker.addEventListener('tick', function(){
 			if(userCtrl.paused) return;
 			// move
@@ -431,7 +568,12 @@ var startLevel = function(level){
 			if(userCtrl.down) y++;
 			if(userCtrl.left) x--;
 			if(userCtrl.right) x++;
-			if(userCtrl.action) {
+			if(userCtrl.action && level > 1) {
+				// allow run from level 2
+				if(!actionAni) {
+					actionAni = true;
+					mePicture.gotoAndPlay('fast');
+				}
 				if(x !== 0 || y !== 0) {
 					var p = 0;
 					if(y === 0 && x === 1) p = 0;
@@ -445,6 +587,11 @@ var startLevel = function(level){
 					y = ME_ACTION_SPEED * Math.sin(p);
 				}
 			} else {
+				// standard move
+				if(actionAni) {
+					actionAni = false;
+					mePicture.gotoAndPlay('normal');
+				}
 				x *= ME_MOVE_SPEED;
 				y *= ME_MOVE_SPEED;
 				if(x !== 0 && y !== 0) {
@@ -548,41 +695,43 @@ var startLevel = function(level){
 		});
 		// show clouds
 		cloudsStart();
-		// show hp
-		var hpBackground = new createjs.Shape();
-		hpBackground.graphics.f('black').r(0,0,8,100);
-		hpBackground.filters = [ new createjs.BoxBlurFilter(3,3,1) ];
-		hpBackground.cache(-7,-7,22,114);
-		var hpOutline = new createjs.Shape();
-		hpOutline.graphics.ss(1).s('#fff').f('black').r(0,0,8,100);
-		hpOutline.cache(0,0,8,100);
-		var hpShape = new createjs.Shape();
-		hpShape.graphics.f('#fff').r(0,0,8,100);
-		var hpPicture = new createjs.Container().set({x:50, y:50, alpha:0.3});
-		hpPicture.addChild(hpBackground);
-		hpPicture.addChild(hpOutline);
-		hpPicture.addChild(hpShape);
-		game.stage.addChild(hpPicture);
-		var meHpOri = meHp;
-		var hpShapeAni = 0;
-		var HP_SHAPE_ANI_SPEED = 0.02;
-		createjs.Ticker.addEventListener('tick', function(){
-			if(userCtrl.paused) return;
-			if(hpPicture.alpha <= 0.3)
-				hpShapeAni = 0;
-			if(meHp < meHpOri) {
-				meHpOri = meHp;
-				var h = 100*meHp/ME_HP_MAX;
-				hpShape.graphics.c().f('#fff').r(0,100-h,8,h);
-				if(hpShapeAni <= 0) hpShapeAni = 1;
-			}
-			if(hpPicture.alpha >= 0.6)
-				hpShapeAni = -1;
-			if(hpShapeAni === 1)
-				hpPicture.alpha += HP_SHAPE_ANI_SPEED;
-			else if(hpShapeAni === -1)
-				hpPicture.alpha -= HP_SHAPE_ANI_SPEED;
-		});
+		// show hp from level 1
+		if(level > 0) {
+			var hpBackground = new createjs.Shape();
+			hpBackground.graphics.f('black').r(0,0,8,100);
+			hpBackground.filters = [ new createjs.BoxBlurFilter(3,3,1) ];
+			hpBackground.cache(-7,-7,22,114);
+			var hpOutline = new createjs.Shape();
+			hpOutline.graphics.ss(1).s('#fff').f('black').r(0,0,8,100);
+			hpOutline.cache(0,0,8,100);
+			var hpShape = new createjs.Shape();
+			hpShape.graphics.f('#fff').r(0,0,8,100);
+			var hpPicture = new createjs.Container().set({x:50, y:50, alpha:0.3});
+			hpPicture.addChild(hpBackground);
+			hpPicture.addChild(hpOutline);
+			hpPicture.addChild(hpShape);
+			game.stage.addChild(hpPicture);
+			var meHpOri = meHp;
+			var hpShapeAni = 0;
+			var HP_SHAPE_ANI_SPEED = 0.03;
+			createjs.Ticker.addEventListener('tick', function(){
+				if(userCtrl.paused) return;
+				if(hpPicture.alpha <= 0.3)
+					hpShapeAni = 0;
+				if(meHp < meHpOri) {
+					meHpOri = meHp;
+					var h = 100*meHp/ME_HP_MAX;
+					hpShape.graphics.c().f('#fff').r(0,100-h,8,h);
+					if(hpShapeAni <= 0) hpShapeAni = 1;
+				}
+				if(hpPicture.alpha >= 0.8)
+					hpShapeAni = -1;
+				if(hpShapeAni === 1)
+					hpPicture.alpha += HP_SHAPE_ANI_SPEED;
+				else if(hpShapeAni === -1)
+					hpPicture.alpha -= HP_SHAPE_ANI_SPEED;
+			});
+		}
 		// fade in
 		var fadingRect = new createjs.Shape().set({alpha: 1});
 		fadingRect.graphics.f('black').r(0,0,WIDTH,HEIGHT);
@@ -599,23 +748,23 @@ var startLevel = function(level){
 		createjs.Ticker.addEventListener('tick', fadingAni);
 		// update every tick
 		createjs.Ticker.addEventListener('tick', function(){
+			if(userCtrl.paused) return;
 			game.stage.update();
 		});
+		// show hint
+		if(game.words[level].hint)
+			hint.show(game.words[level].hint, 5000);
 	};
 
 	// TODO : DEBUG
-	if(DEBUG.SKIP_TEXT) {
-		storyLoopEnd();
-		storyLoopEnd = function(){};
-		if(DEBUG.SHOW_FPS) {
-			var t = new createjs.Text('FPS: ...', '12px monospace', 'red');
-			t.x = 0;
-			t.y = 0;
-			game.stage.addChild(t);
-			createjs.Ticker.addEventListener('tick', function(){
-				t.text = 'FPS: '+Math.round(createjs.Ticker.getMeasuredFPS());
-			});
-		}
+	if(DEBUG.SHOW_FPS) {
+		var t = new createjs.Text('FPS: ...', '12px monospace', 'red');
+		t.x = 0;
+		t.y = 0;
+		game.stage.addChild(t);
+		createjs.Ticker.addEventListener('tick', function(){
+			t.text = 'FPS: '+Math.round(createjs.Ticker.getMeasuredFPS());
+		});
 	}
 
 };
@@ -640,14 +789,6 @@ game.start = function(){
 		game.saveSettings();
 	};
 
-	// pause and unpause
-	var pause = function(){
-		userCtrl.paused = true;
-	};
-	var unpause = function(){
-		userCtrl.paused = false;
-	};
-
 	// keyboard event handlers
 
 	var keyPause = function(){
@@ -670,6 +811,9 @@ game.start = function(){
 		if(game.settings.volume > 0) game.settings.volume -= 10;
 		updateVolume();
 	};
+	var keySkip = function(){
+		userCtrl.skip = true;
+	};
 	var keyStartAction = function(){};
 	var keyStartUp = function(){
 		userCtrl.up = true;
@@ -684,13 +828,8 @@ game.start = function(){
 		userCtrl.right = true;
 	};
 	var keyEndAction = function(){
-		if(!userCtrl.paused) {
+		if(!userCtrl.paused)
 			userCtrl.action = !userCtrl.action;
-			if(userCtrl.action)
-				mePicture.gotoAndPlay('fast');
-			else
-				mePicture.gotoAndPlay('normal');
-		}
 	};
 	var keyEndUp = function(){
 		userCtrl.up = false;
@@ -724,6 +863,7 @@ game.start = function(){
 		77: keyMusicOn,
 		188: keyVolumeDown,
 		190: keyVolumeUp,
+		13: keySkip,
 		82: keyReset,
 		32: keyEndAction,
 		38: keyEndUp,
@@ -737,25 +877,33 @@ game.start = function(){
 	};
 
 	// basic listeners
-	window.addEventListener('keydown', function(e){
+	game.keyDownFunc = function(e){
 		if(keyDownFunc[e.keyCode]) {
 			keyDownFunc[e.keyCode]();
 			e.preventDefault();
 		}
-	}, false);
-	window.addEventListener('keyup', function(e){
+	};
+	window.addEventListener('keydown', game.keyDownFunc, false);
+	game.keyUpFunc = function(e){
 		if(keyUpFunc[e.keyCode]) {
 			keyUpFunc[e.keyCode]();
 			e.preventDefault();
 		}
-	}, false);
-	window.addEventListener('blur', function(e){
+	};
+	window.addEventListener('keyup', game.keyUpFunc, false);
+	game.blurFunc = function(e){
+		windowFocus = false;
 		pause();
 		userCtrl.up = false;
 		userCtrl.down = false;
 		userCtrl.left = false;
 		userCtrl.right = false;
-	}, false);
+	};
+	window.addEventListener('blur', game.blurFunc, false);
+	game.focusFunc = function(e){
+		windowFocus = true;
+	};
+	window.addEventListener('focus', game.focusFunc, false);
 
 	// enter level
 	game.stage.enableMouseOver(0);

@@ -23,6 +23,8 @@ window.game = {};
 game.settings = null;
 game.stage = null;
 game.curMusic = -1;
+var initResource = null;
+var mainResource = null;
 
 // global funcs
 
@@ -61,7 +63,8 @@ game.createTextButton = function(text, fontSize, background, centerX, centerY, w
 
 // show cover
 
-var showCover = function(res){
+game.showCover = function(){
+	var res = initResource;
 
 	//init
 	createjs.Ticker.setFPS(FPS);
@@ -164,13 +167,10 @@ var showCover = function(res){
 	};
 	createjs.Ticker.addEventListener('tick', titleAni);
 
-	// start load main resource
-	var q = new createjs.LoadQueue(USE_ADVANCED_LOADING, 'data/');
-	q.installPlugin(createjs.Sound);
-	q.addEventListener('progress', function(e){
-		progress.c().f('#888').r(0, 0, e.progress*800, 3);
-	});
-	q.addEventListener('complete', function(){
+	// loaded
+	var resourceLoaded = function(){
+		var q = mainResource;
+		game.mainResource = mainResource;
 		progress.c().f('#888').r(0, 0, 800, 3);
 		// get results
 		if(location.protocol !== 'file:') {
@@ -239,7 +239,7 @@ var showCover = function(res){
 		});
 		startButton.addEventListener('mouseover', function(){
 			if(game.settings.curLevel)
-				hint.show('游戏已进行至第 '+curLevel+' 关', 3000);
+				hint.show('游戏已进行至第 '+game.settings.curLevel+' 关', 3000);
 			else
 				hint.show('开始新的游戏', 3000);
 		});
@@ -282,42 +282,56 @@ var showCover = function(res){
 			e.preventDefault();
 		};
 		document.body.addEventListener('keyup', coverKeyFunc);
-	});
-	if(location.protocol !== 'file:') {
-		// advanced loading
-		q.loadManifest([
-			{id:'maps', type:'text', src:'maps.data'},
-			{id:'words', src:'words.json'},
-			{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
-			{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
-			{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
-			{id:'bgm4', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
-			{src:'js/levels.js'}
-		]);
+	};
+
+	// start load main resource if needed
+	if(mainResource) {
+		resourceLoaded();
 	} else {
-		// load text data through xhr
-		var xhr1 = new XMLHttpRequest();
-		xhr1.addEventListener('load', function(){
-			game.maps = xhr1.response.split('\n');
-		}, false);
-		xhr1.open('GET', 'data/maps.data', false);
-		xhr1.overrideMimeType('text/plain; charset=utf8');
-		xhr1.send();
-		var xhr2 = new XMLHttpRequest();
-		xhr2.addEventListener('load', function(){
-			game.words = JSON.parse(xhr2.response);
-		}, false);
-		xhr2.open('GET', 'data/words.json', false);
-		xhr2.overrideMimeType('text/plain; charset=utf8');
-		xhr2.send();
-		// load else
-		q.loadManifest([
-			{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
-			{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
-			{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
-			{id:'bgm4', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
-			{src:'js/levels.js'}
-		]);
+		var q = mainResource = new createjs.LoadQueue(USE_ADVANCED_LOADING, 'data/');
+		q.installPlugin(createjs.Sound);
+		q.addEventListener('progress', function(e){
+			progress.c().f('#888').r(0, 0, e.progress*800, 3);
+		});
+		q.addEventListener('complete', resourceLoaded);
+		if(location.protocol !== 'file:') {
+			// advanced loading
+			q.loadManifest([
+				{id:'maps', type:'text', src:'maps.data'},
+				{id:'words', src:'words.json'},
+				{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
+				{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
+				{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
+				{id:'bgm4', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
+				{id:'tomorrow', src:'image/title.png'},
+				{src:'js/levels.js'}
+			]);
+		} else {
+			// load text data through xhr
+			var xhr1 = new XMLHttpRequest();
+			xhr1.addEventListener('load', function(){
+				game.maps = xhr1.response.split('\n');
+			}, false);
+			xhr1.open('GET', 'data/maps.data', false);
+			xhr1.overrideMimeType('text/plain; charset=utf8');
+			xhr1.send();
+			var xhr2 = new XMLHttpRequest();
+			xhr2.addEventListener('load', function(){
+				game.words = JSON.parse(xhr2.response);
+			}, false);
+			xhr2.open('GET', 'data/words.json', false);
+			xhr2.overrideMimeType('text/plain; charset=utf8');
+			xhr2.send();
+			// load else
+			q.loadManifest([
+				{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
+				{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
+				{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
+				{id:'bgm4', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
+				{id:'tomorrow', src:'image/title.png'},
+				{src:'js/levels.js'}
+			]);
+		}
 	}
 
 };
@@ -336,13 +350,15 @@ document.bindReady(function(){
 	// init canvas
 	document.getElementById('wrapper').innerHTML = '<canvas id="main_canvas" width="'+WIDTH+'" height="'+HEIGHT+'"></canvas>';
 	game.stage = new createjs.Stage('main_canvas');
+	createjs.Sound.registerPlugins([createjs.HTMLAudioPlugin]);
 
 	// load title resource
 	hint.show('正在载入页面……');
 	var q = new createjs.LoadQueue(USE_ADVANCED_LOADING, 'data/');
 	q.addEventListener('complete', function(){
 		hint.hide();
-		showCover(q);
+		initResource = q;
+		game.showCover();
 	});
 	q.loadManifest([
 		{id:'title', src:'image/title.png'},
