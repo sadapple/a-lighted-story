@@ -2,19 +2,21 @@
 
 // consts
 
+var VERSION = '0.1.20130818';
 var FPS = 32;
 var WIDTH = 960;
 var HEIGHT = 540;
 var FONT = ' "文泉驿正黑","微软雅黑","黑体" ';
 var USE_ADVANCED_LOADING = false;
 var STORAGE_ID = 'tomorrow';
-var STORAGE_VERSION = 1;
+var STORAGE_VERSION = VERSION;
 var DEFAULT_SETTINGS = {
 	version: STORAGE_VERSION,
 	musicOn: true,
 	volume: 100,
 	curLevel: 0,
-	levelReached: 0
+	levelReached: 0,
+	difficulty: 1
 };
 
 // global vars
@@ -29,7 +31,7 @@ var mainResource = null;
 // global funcs
 
 game.saveSettings = function(){
-	localStorage.tomorrow = JSON.stringify(game.settings);
+	localStorage[STORAGE_ID] = JSON.stringify(game.settings);
 };
 
 game.createTextButton = function(text, fontSize, background, centerX, centerY, width, height, clickFunc){
@@ -84,7 +86,7 @@ game.showCover = function(){
 	);
 	lastleafLink.getChildAt(1).alpha = 0.8;
 	lastleafLink.getChildAt(2).visible = false;
-	lastleafLink.x = -300;
+	lastleafLink.x = -370;
 	lastleafLink.y = -26;
 	lastleafLink.addEventListener('mouseover', function(){
 		lastleafLink.getChildAt(2).visible = true;
@@ -100,22 +102,22 @@ game.showCover = function(){
 	bottomBar.addChild(lastleafLink);
 
 	// show license link
-	var licenseLink = game.createTextButton('授权协议', 16, '#000', 190, 0, 72, 24, function(){
+	var licenseLink = game.createTextButton('授权协议', 16, '#000', 250, 0, 72, 24, function(){
 		window.open('license.html', '_blank');
 	});
 	bottomBar.addChild(licenseLink);
 
 	// show about link
-	var aboutLink = game.createTextButton('版本 0.1', 16, '#000', 290, 0, 72, 24, function(){
+	var aboutLink = game.createTextButton('版本 0.1', 16, '#000', 340, 0, 72, 24, function(){
 		window.open('change_logs.html', '_blank');
 	});
 	bottomBar.addChild(aboutLink);
 
 	// show subtitle
-	var subtitle = game.createTextButton('改编自同名短篇小说', 20, '#000', WIDTH/2, 420, 190, 30, function(){
+	var subtitle = game.createTextButton('改编自同名短篇小说', 20, '#000', 0, 0, 190, 30, function(){
 		window.open('http://blog.programet.org/2010/04/%E6%98%8E%E5%A4%A9.html', '_blank');
 	});
-	game.stage.addChild(subtitle);
+	bottomBar.addChild(subtitle);
 
 	// show title
 	var titleImg = new createjs.Bitmap(res.getResult('title'));
@@ -180,11 +182,61 @@ game.showCover = function(){
 		// read settings
 		try {
 			game.settings = JSON.parse(localStorage[STORAGE_ID]);
-			if(game.settings.version < STORAGE_VERSION)
+			if(game.settings.version !== STORAGE_VERSION) {
+				// update settings
+				for(var k in DEFAULT_SETTINGS)
+					if(typeof(game.settings[k]) === 'undefined')
+						game.settings[k] = DEFAULT_SETTINGS[k];
 				game.settings.version = STORAGE_VERSION;
+				game.saveSettings();
+			}
 		} catch(e) {
 			game.settings = DEFAULT_SETTINGS;
 		}
+		// show difficulty button
+		var difficultyButton = [
+			game.createTextButton('难度：傻瓜', 20, '#000', WIDTH/2, 420, 110, 30, function(){
+				difficultyButton[0].visible = false;
+				difficultyButton[1].visible = true;
+				game.settings.difficulty = 1;
+				difficultyButton[1].dispatchEvent('mouseover');
+			}),
+			game.createTextButton('难度：新手', 20, '#000', WIDTH/2, 420, 110, 30, function(){
+				difficultyButton[1].visible = false;
+				difficultyButton[2].visible = true;
+				game.settings.difficulty = 2;
+				difficultyButton[2].dispatchEvent('mouseover');
+			}),
+			game.createTextButton('难度：勇士', 20, '#000', WIDTH/2, 420, 110, 30, function(){
+				difficultyButton[2].visible = false;
+				difficultyButton[3].visible = true;
+				game.settings.difficulty = 3;
+				difficultyButton[3].dispatchEvent('mouseover');
+			}),
+			game.createTextButton('难度：疯子', 20, '#000', WIDTH/2, 420, 110, 30, function(){
+				difficultyButton[3].visible = false;
+				difficultyButton[0].visible = true;
+				game.settings.difficulty = 0;
+				difficultyButton[0].dispatchEvent('mouseover');
+			})
+		];
+		difficultyButton[0].addEventListener('mouseover', function(){
+			hint.show('你真的是傻瓜吗？', 3000);
+		});
+		difficultyButton[1].addEventListener('mouseover', function(){
+			hint.show('如果未曾通关，这个难度比较合适吧……', 3000);
+		});
+		difficultyButton[2].addEventListener('mouseover', function(){
+			hint.show('这是个挑战！', 3000);
+		});
+		difficultyButton[3].addEventListener('mouseover', function(){
+			hint.show('你不可能通关的，除非你疯了。', 3000);
+		});
+		difficultyButton[0].set({visible: false}).addEventListener('mouseout', hint.hide);
+		difficultyButton[1].set({visible: false}).addEventListener('mouseout', hint.hide);
+		difficultyButton[2].set({visible: false}).addEventListener('mouseout', hint.hide);
+		difficultyButton[3].set({visible: false}).addEventListener('mouseout', hint.hide);
+		difficultyButton[game.settings.difficulty].visible = true;
 		// show music button
 		var musicButtonOn = game.createTextButton('音乐：开', 20, '#000', WIDTH/2, 375, 90, 30, function(){
 			musicButtonOn.visible = false;
@@ -221,7 +273,7 @@ game.showCover = function(){
 			// save settings
 			game.saveSettings();
 			// remove key bindings
-			document.body.removeEventListener('keyup', coverKeyFunc);
+			window.removeEventListener('keyup', coverKeyFunc);
 			// fade-out everything
 			var b = new createjs.Shape();
 			b.graphics.f('black').r(0,0,WIDTH,HEIGHT);
@@ -239,7 +291,7 @@ game.showCover = function(){
 		});
 		startButton.addEventListener('mouseover', function(){
 			if(game.settings.curLevel)
-				hint.show('游戏已进行至第 '+game.settings.curLevel+' 关', 3000);
+				hint.show('游戏已进行至第 '+game.settings.curLevel+' 关，按“R”键可清除游戏进度', 3000);
 			else
 				hint.show('开始新的游戏', 3000);
 		});
@@ -247,13 +299,29 @@ game.showCover = function(){
 			hint.hide();
 		});
 		// button animation
+		difficultyButton[0].alpha = 0;
+		difficultyButton[1].alpha = 0;
+		difficultyButton[2].alpha = 0;
+		difficultyButton[3].alpha = 0;
 		musicButtonOn.alpha = 0;
 		musicButtonOff.alpha = 0;
 		startButton.alpha = 0;
 		progressBar.removeChild(progressText);
-		game.stage.addChild(musicButtonOn, musicButtonOff, startButton);
+		game.stage.addChild(
+			difficultyButton[0],
+			difficultyButton[1],
+			difficultyButton[2],
+			difficultyButton[3],
+			musicButtonOn,
+			musicButtonOff,
+			startButton
+		);
 		createjs.Ticker.addEventListener('tick', function(){
 			if(musicButtonOn.alpha >= 1) return;
+			difficultyButton[0].alpha += 0.1;
+			difficultyButton[1].alpha += 0.1;
+			difficultyButton[2].alpha += 0.1;
+			difficultyButton[3].alpha += 0.1;
 			musicButtonOn.alpha += 0.1;
 			musicButtonOff.alpha += 0.1;
 			startButton.alpha += 0.1;
@@ -277,11 +345,19 @@ game.showCover = function(){
 				if(game.settings.volume < 100)
 					game.settings.volume += 10;
 				hint.show('音量：'+game.settings.volume, 1000);
+			} else if(e.keyCode === 82) {
+				if(confirm('清除游戏进度和游戏设置？')) {
+					delete localStorage[STORAGE_ID];
+					game.stage.removeAllChildren();
+					createjs.Ticker.removeAllEventListeners('tick');
+					window.removeEventListener('keyup', coverKeyFunc);
+					game.showCover();
+				}
 			} else
 				return;
 			e.preventDefault();
 		};
-		document.body.addEventListener('keyup', coverKeyFunc);
+		window.addEventListener('keyup', coverKeyFunc);
 	};
 
 	// start load main resource if needed
@@ -297,14 +373,14 @@ game.showCover = function(){
 		if(location.protocol !== 'file:') {
 			// advanced loading
 			q.loadManifest([
-				{id:'maps', type:'text', src:'maps.data'},
-				{id:'words', src:'words.json'},
+				{id:'maps', type:'text', src:'maps.data?v='+VERSION},
+				{id:'words', src:'words.json?v='+VERSION},
 				{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
 				{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
 				{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
 				{id:'bgm4', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
 				{id:'tomorrow', src:'image/title.png'},
-				{src:'js/levels.js'}
+				{src:'js/levels.js?v='+VERSION}
 			]);
 		} else {
 			// load text data through xhr

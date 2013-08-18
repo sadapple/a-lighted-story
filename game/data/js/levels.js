@@ -10,7 +10,8 @@ var ME_R = 12;
 var LIGHT_R_MAX = 50*6;
 
 // game
-var ME_HP_MAX = 1000;
+var ME_HP_MAX = [5000,2500,1200,500];
+var LIGHTS_SPEED = [1,2,2.5,3];
 var ME_MOVE_SPEED = 3;
 var ME_ACTION_SPEED = 6; // no larger than 6
 var ME_ACTION_DAMAGE = 4;
@@ -133,9 +134,9 @@ var generateMe = function(){
 		frames.push(i);
 	ss.addAnimation('normal', frames, 'normal');
 	var frames = [];
-	for(var i=0; i<frameCount; i+=4)
+	for(var i=0; i<frameCount/1.5; i+=8)
 		frames.push(i);
-	for(var i=frameCount-2; i>0; i-=4)
+	for(var i=Math.floor(frameCount/1.5)-1; i>0; i-=8)
 		frames.push(i);
 	ss.addAnimation('fast', frames, 'fast');
 	return new createjs.BitmapAnimation(ss.build());
@@ -186,8 +187,10 @@ var startLevel = function(level){
 			if(game.settings.musicOn)
 				createjs.Sound.setVolume(curVol*game.settings.volume/100);
 			if(curVol <= 0) {
-				game.settings.curLevel = 0;
-				game.saveSettings();
+				if(level >= 0) {
+					game.settings.curLevel = 0;
+					game.saveSettings();
+				}
 				game.started = false;
 				createjs.Sound.stop();
 				createjs.Ticker.removeAllEventListeners('tick');
@@ -377,11 +380,13 @@ var startLevel = function(level){
 	// show map
 	var storyLoopEnd = function(){
 		// init
-		var meHp = ME_HP_MAX;
+		var meHpMax = ME_HP_MAX[game.settings.difficulty];
+		var meHp = meHpMax;
 		var map = parseMap(level);
 		var lights = map.lights;
 		userCtrlReset();
 		if(!windowFocus) pause();
+
 		// end level
 		var levelEnd = function(endFunc){
 			createjs.Ticker.removeAllEventListeners('tick');
@@ -410,12 +415,21 @@ var startLevel = function(level){
 			});
 		};
 		var skipLevel = function(t){
-			game.settings.curLevel = t;
-			game.saveSettings();
-			levelEnd(function(){
-				startLevel(game.settings.curLevel);
-			});
+			if(t < 0) {
+				// return cover
+				levelEnd(function(){
+					startLevel(-1);
+				});
+			} else {
+				// to level
+				game.settings.curLevel = t;
+				game.saveSettings();
+				levelEnd(function(){
+					startLevel(game.settings.curLevel);
+				});
+			}
 		};
+
 		// pause
 		var pauseLayer = new createjs.Container();
 		pauseLayer.addChild( new createjs.Shape(
@@ -439,7 +453,7 @@ var startLevel = function(level){
 			x: 250,
 			y: 40
 		}) );
-		pauseLayerFrame.addChild( (new createjs.Text('按方向键或WASD选择关卡，Enter跳转', '16px'+FONT, 'rgb(64,64,64)')).set({
+		pauseLayerFrame.addChild( (new createjs.Text('按方向键或WASD选择关卡，Enter跳转，“R”键返回封面', '16px'+FONT, 'rgb(64,64,64)')).set({
 			textAlign: 'center',
 			textBaseline: 'bottom',
 			x: 250,
@@ -515,7 +529,7 @@ var startLevel = function(level){
 				levelLinksUpdate();
 				game.stage.update();
 			}
-			// action
+			// action or reset
 			if(userCtrl.skip) {
 				userCtrl.skip = false;
 				if(levelLinkSelected === game.settings.curLevel) {
@@ -532,8 +546,24 @@ var startLevel = function(level){
 						skipLevel(levelLinkSelected);
 					}, 0);
 				}
+			} else if(userCtrl.reset) {
+				userCtrl.reset = false;
+				setTimeout(function(){
+					unpause();
+					if(game.settings.musicOn)
+						createjs.Sound.setVolume(game.settings.volume/100);
+					skipLevel(-1);
+				}, 0);
 			}
 		});
+
+		// reset
+		createjs.Ticker.addEventListener('tick', function(){
+			if(userCtrl.paused || !userCtrl.reset) return;
+			resetLevel();
+			userCtrl.reset = false;
+		});
+
 		// calc hp
 		createjs.Ticker.addEventListener('tick', function(){
 			if(userCtrl.paused) return;
@@ -557,6 +587,7 @@ var startLevel = function(level){
 			if( dx*dx + dy*dy <= 4*ME_R*ME_R )
 				doneLevel();
 		});
+
 		// handling moves
 		var actionAni = false;
 		createjs.Ticker.addEventListener('tick', function(){
@@ -625,16 +656,20 @@ var startLevel = function(level){
 				mePicture.y = py;
 			}
 		});
+
 		// show me
 		game.stage.addChild(mePicture);
 		mePicture.x = map.startX;
 		mePicture.y = map.startY;
 		mePicture.gotoAndPlay('normal');
+
 		// show map
 		game.stage.addChild(map.picture);
-		// update lights every tick
+
+		// update lights
 		var lightsLayer = new createjs.Container().set({x:0,y:0});
 		game.stage.addChild(lightsLayer);
+		var lightsSpeed = LIGHTS_SPEED[game.settings.difficulty];
 		createjs.Ticker.addEventListener('tick', function(){
 			if(userCtrl.paused) return;
 			// redraw lights
@@ -644,7 +679,6 @@ var startLevel = function(level){
 				// random size
 				var P_SIZE_STATE = 0.06;
 				var P_CHANGE = 0.5;
-				var SIZE_SPEED_MAX = 2;
 				if(a.rmax > a.rmin) {
 					if(Math.random() < P_SIZE_STATE) {
 						var p = Math.random();
@@ -656,9 +690,9 @@ var startLevel = function(level){
 							if(a.rori === a.rmax)
 								p2 = (a.r-a.rmax)*1e6;
 							if(p/P_CHANGE < p1/(p1+p2))
-								a.sizeState = -Math.random()*SIZE_SPEED_MAX*a.speed;
+								a.sizeState = -Math.random()*lightsSpeed*a.speed;
 							else
-								a.sizeState = Math.random()*SIZE_SPEED_MAX*a.speed;
+								a.sizeState = Math.random()*lightsSpeed*a.speed;
 						} else {
 							a.sizeState = 0;
 						}
@@ -669,7 +703,6 @@ var startLevel = function(level){
 				if(a.r <= a.rmin) a.r = a.rmin;
 				// random moving
 				var P_MOVE_STATE = 0.03;
-				var MOVE_SPEED_MAX = 2;
 				if(a.area) {
 					if(Math.random() < P_MOVE_STATE) {
 						var p = Math.random()*Math.PI*2;
@@ -677,8 +710,8 @@ var startLevel = function(level){
 						var dx = Math.cos(p)*q + a.xori;
 						var dy = Math.sin(p)*q + a.yori;
 						var d = Math.sqrt( (dx-a.x)*(dx-a.x) + (dy-a.y)*(dy-a.y) );
-						a.moveX = (dx-a.x)*MOVE_SPEED_MAX*a.speed/d;
-						a.moveY = (dy-a.y)*MOVE_SPEED_MAX*a.speed/d;
+						a.moveX = (dx-a.x)*lightsSpeed*a.speed/d;
+						a.moveY = (dy-a.y)*lightsSpeed*a.speed/d;
 					}
 					a.x += a.moveX;
 					a.y += a.moveY;
@@ -693,8 +726,10 @@ var startLevel = function(level){
 				lightsLayer.addChild(generateLight(Math.round(a.r), a.x, a.y));
 			}
 		});
+
 		// show clouds
 		cloudsStart();
+
 		// show hp from level 1
 		if(level > 0) {
 			var hpBackground = new createjs.Shape();
@@ -720,7 +755,7 @@ var startLevel = function(level){
 					hpShapeAni = 0;
 				if(meHp < meHpOri) {
 					meHpOri = meHp;
-					var h = 100*meHp/ME_HP_MAX;
+					var h = 100*meHp/meHpMax;
 					hpShape.graphics.c().f('#fff').r(0,100-h,8,h);
 					if(hpShapeAni <= 0) hpShapeAni = 1;
 				}
@@ -732,6 +767,7 @@ var startLevel = function(level){
 					hpPicture.alpha -= HP_SHAPE_ANI_SPEED;
 			});
 		}
+
 		// fade in
 		var fadingRect = new createjs.Shape().set({alpha: 1});
 		fadingRect.graphics.f('black').r(0,0,WIDTH,HEIGHT);
@@ -746,26 +782,28 @@ var startLevel = function(level){
 			fadingRect.alpha -= 0.04;
 		};
 		createjs.Ticker.addEventListener('tick', fadingAni);
+
 		// update every tick
 		createjs.Ticker.addEventListener('tick', function(){
 			if(userCtrl.paused) return;
 			game.stage.update();
 		});
+
 		// show hint
 		if(game.words[level].hint)
 			hint.show(game.words[level].hint, 5000);
-	};
 
-	// TODO : DEBUG
-	if(DEBUG.SHOW_FPS) {
-		var t = new createjs.Text('FPS: ...', '12px monospace', 'red');
-		t.x = 0;
-		t.y = 0;
-		game.stage.addChild(t);
-		createjs.Ticker.addEventListener('tick', function(){
-			t.text = 'FPS: '+Math.round(createjs.Ticker.getMeasuredFPS());
-		});
-	}
+		// TODO : DEBUG
+		if(DEBUG.SHOW_FPS) {
+			var t = new createjs.Text('FPS: ...', '12px monospace', 'red');
+			t.x = 0;
+			t.y = 0;
+			game.stage.addChild(t);
+			createjs.Ticker.addEventListener('tick', function(){
+				t.text = 'FPS: '+Math.round(createjs.Ticker.getMeasuredFPS());
+			});
+		}
+	};
 
 };
 
@@ -796,8 +834,7 @@ game.start = function(){
 		else pause();
 	};
 	var keyReset = function(){
-		if(!userCtrl.paused)
-			userCtrl.reset = true;
+		userCtrl.reset = true;
 	};
 	var keyMusicOn = function(){
 		game.settings.musicOn = !game.settings.musicOn;
