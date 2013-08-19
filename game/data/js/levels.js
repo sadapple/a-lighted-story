@@ -10,8 +10,8 @@ var ME_R = 12;
 var LIGHT_R_MAX = 50*6;
 
 // game
-var ME_HP_MAX = [5000,2500,1200,500];
-var LIGHTS_SPEED = [1,2,2.5,3];
+var ME_HP_MAX = [4000,2000,1200,600];
+var LIGHTS_SPEED = [1,2,3,3.5];
 var ME_MOVE_SPEED = 3;
 var ME_ACTION_SPEED = 6; // no larger than 6
 var ME_ACTION_DAMAGE = 4;
@@ -31,11 +31,21 @@ var parseMap = function(level){
 	var a = game.maps[level].split('|');
 	map.startX = a[1]*6;
 	map.startY = a[2]*6;
-	map.endX = a[3]*6;
-	map.endY = a[4]*6;
+	var endX = a[3].split(' ');
+	var endY = a[4].split(' ');
+	var i = Math.floor( Math.random() * endX.length );
+	map.endX = endX[i]*6;
+	map.endY = endY[i]*6;
+	// special controls
+	map.showEnd = false;
+	if(endY[endX.length] === 'S')
+		map.showEnd = true;
+	map.white = false;
+	if(endY[endX.length] === 'W')
+		map.white = true;
 	// parse lights
 	map.lights = [];
-	var s = a[5].split(/[ \t]+/g);
+	var s = a[5].split(' ');
 	for(var i=0; i<s.length; i++) {
 		var b = s[i].match(/^\(([0-9]+)\,([0-9]+)\)\*([0-9]+)\(([0-9]+)\,([0-9]+)\)(o[0-9]+|)(~[0-9\.]+|)$/);
 		if(!b) continue;
@@ -117,7 +127,7 @@ var generateLight = function(r, x, y){
 	});
 };
 
-var generateMe = function(){
+var generatePerson = function(color){
 	var ss = new createjs.SpriteSheetBuilder();
 	var rmax = ME_R*0.75;
 	var rmin = ME_R*0.25;
@@ -126,7 +136,7 @@ var generateMe = function(){
 	var frameCount = 41;
 	var rect = new createjs.Rectangle(-ME_R, -ME_R, ME_R*2, ME_R*2);
 	for(var i=rmax; i>rmin-(1e-6); i-=rspeed)
-		ss.addFrame(generateRound('rgb(128,128,128)',i,rout), rect);
+		ss.addFrame(generateRound(color,i,rout), rect);
 	var frames = [];
 	for(var i=0; i<frameCount; i++)
 		frames.push(i);
@@ -141,7 +151,8 @@ var generateMe = function(){
 	ss.addAnimation('fast', frames, 'fast');
 	return new createjs.BitmapAnimation(ss.build());
 };
-var mePicture = generateMe();
+var mePicture = generatePerson('rgb(128,128,128)');
+var herPicture = generatePerson('rgb(128,128,128)');
 
 // user operations
 
@@ -205,11 +216,6 @@ var startLevel = function(level){
 		return;
 	}
 
-	// save progress
-	if(game.settings.levelReached < game.settings.curLevel)
-		game.settings.levelReached = game.settings.curLevel;
-	game.saveSettings();
-
 	// switch music
 	if(game.curMusic !== game.words[level].chapter) {
 		var curVol = 1;
@@ -264,7 +270,7 @@ var startLevel = function(level){
 	var storyLoopStart = function(){
 		// show level words
 		var story = game.words[level].story;
-		var storyText = new createjs.Text('', '30px'+FONT, '#ccc');
+		var storyText = new createjs.Text();
 		storyText.textAlign = 'center';
 		storyText.textBaseline = 'middle';
 		storyText.x = WIDTH/2;
@@ -285,11 +291,13 @@ var startLevel = function(level){
 		var storyLoop = function(){
 			if(i >= story.length || userCtrl.skip) {
 				userCtrl.skip = false;
-				// end loop
-				createjs.Ticker.removeEventListener('tick', storyLoop);
-				game.stage.removeChild(storyContainer);
-				storyLoopEnd();
-				return;
+				if(i >= story.length || game.settings.levelReached >= level) {
+					// end loop
+					createjs.Ticker.removeEventListener('tick', storyLoop);
+					game.stage.removeChild(storyContainer);
+					storyLoopEnd();
+					return;
+				}
 			}
 			if(isFadeIn) {
 				// init text
@@ -303,8 +311,24 @@ var startLevel = function(level){
 								x: (WIDTH-img.width)/2,
 								y: (HEIGHT-img.height)/2
 							}) );
+						} else if(story[i].slice(0,8) === '!author:') {
+							storyText.font = '24px'+FONT;
+							storyText.color = '#c0c0c0';
+							storyText.text = story[i].slice(8);
+							storyText.cache(-480, -40, 960, 80);
+							fadeAlphaMax = story[i].length/2 * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
+							storyContainer.addChild(storyText);
+						} else if(story[i].slice(0,5) === '!her:') {
+							storyText.font = '30px'+FONT;
+							storyText.color = '#FBB7BF';
+							storyText.text = story[i].slice(5);
+							storyText.cache(-480, -40, 960, 80);
+							fadeAlphaMax = story[i].length/2 * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
+							storyContainer.addChild(storyText);
 						}
 					} else {
+						storyText.font = '30px'+FONT;
+						storyText.color = '#c0c0c0';
 						storyText.text = story[i];
 						storyText.cache(-480, -20, 960, 40);
 						fadeAlphaMax = story[i].length * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
@@ -379,10 +403,19 @@ var startLevel = function(level){
 
 	// show map
 	var storyLoopEnd = function(){
+		// save progress
+		if(game.settings.levelReached < level)
+			game.settings.levelReached = level;
+		game.saveSettings();
+
 		// init
 		var meHpMax = ME_HP_MAX[game.settings.difficulty];
 		var meHp = meHpMax;
 		var map = parseMap(level);
+		if(map.white)
+			var mePicture = generatePerson('#000');
+		else
+			var mePicture = generatePerson('#808080');
 		var lights = map.lights;
 		userCtrlReset();
 		if(!windowFocus) pause();
@@ -521,7 +554,7 @@ var startLevel = function(level){
 			// update level link
 			if(userCtrl.up && levelLinkSelected>=7 && levelLinkSelected<=18)
 				levelLinkSelected -= 6;
-			if(userCtrl.down && levelLinkSelected>=1 && levelLinkSelected<=12 && levelLinkSelected<game.settings.levelReached-6)
+			if(userCtrl.down && levelLinkSelected>=1 && levelLinkSelected<=12 && levelLinkSelected<=game.settings.levelReached-6)
 				levelLinkSelected += 6;
 			if(userCtrl.left && levelLinkSelected>=1) levelLinkSelected--;
 			if(userCtrl.right && levelLinkSelected<game.settings.levelReached) levelLinkSelected++;
@@ -663,6 +696,24 @@ var startLevel = function(level){
 		mePicture.y = map.startY;
 		mePicture.gotoAndPlay('normal');
 
+		// show end if needed
+		if(map.showEnd) {
+			var endPicture = generatePerson('#FBB7BF');
+			game.stage.addChild(endPicture);
+			endPicture.x = map.endX;
+			endPicture.y = map.endY;
+			endPicture.alpha = 4;
+			endPicture.gotoAndPlay('normal');
+			var endAni = function(){
+				endPicture.alpha -= 0.02;
+				if(endPicture.alpha <= 0) {
+					createjs.Ticker.removeEventListener('tick', endAni);
+					game.stage.removeChild(endPicture);
+				}
+			};
+			createjs.Ticker.addEventListener('tick', endAni);
+		}
+
 		// show map
 		game.stage.addChild(map.picture);
 
@@ -773,7 +824,7 @@ var startLevel = function(level){
 		fadingRect.graphics.f('black').r(0,0,WIDTH,HEIGHT);
 		game.stage.addChild(fadingRect);
 		var fadingAni = function(){
-			game.stage.addChild(fadingRect);
+			if(userCtrl.paused) return;
 			if(fadingRect.alpha <= 0) {
 				createjs.Ticker.removeEventListener('tick', fadingAni);
 				game.stage.removeChild(fadingRect);

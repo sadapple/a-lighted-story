@@ -284,6 +284,7 @@ game.showCover = function(){
 					createjs.Ticker.removeAllEventListeners('tick');
 					game.stage.removeAllChildren();
 					game.stage.update();
+					hint.hide();
 					game.start();
 				}
 				b.alpha += 0.1;

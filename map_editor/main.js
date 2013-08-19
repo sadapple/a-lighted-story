@@ -36,10 +36,14 @@ $(function(){
 		context.fillStyle = "blue";
 		context.arc(parseInt($startX.val())*6, parseInt($startY.val())*6, 6, 0, Math.PI*2);
 		context.fill();
-		context.beginPath();
-		context.fillStyle = "green";
-		context.arc(parseInt($endX.val())*6, parseInt($endY.val())*6, 24, 0, Math.PI*2);
-		context.fill();
+		var endX = $endX.val().split(' ');
+		var endY = $endY.val().split(' ');
+		for(var i=0; i<endX.length; i++) {
+			context.beginPath();
+			context.fillStyle = "green";
+			context.arc(endX[i]*6, endY[i]*6, 24, 0, Math.PI*2);
+			context.fill();
+		}
 		// parse lights
 		var s = $lights.val().split(/[ \t]+/g);
 		for(var i=0; i<s.length; i++) {
