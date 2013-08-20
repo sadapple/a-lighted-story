@@ -2,7 +2,7 @@
 
 // consts
 
-var VERSION = '0.1.20130818';
+var VERSION = '0.1.20130821';
 var FPS = 32;
 var WIDTH = 960;
 var HEIGHT = 540;
