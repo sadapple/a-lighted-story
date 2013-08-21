@@ -10,7 +10,7 @@ var ME_R = 12;
 var LIGHT_R_MAX = 50*6;
 
 // game
-var ME_HP_MAX = [4000,2000,1200,600];
+var ME_HP_MAX = [4000,2000,1200,800];
 var LIGHTS_SPEED = [1,2,3,3.5];
 var ME_MOVE_SPEED = 3;
 var ME_ACTION_SPEED = 6; // no larger than 6
@@ -38,10 +38,13 @@ var parseMap = function(level){
 	map.endY = endY[i]*6;
 	// special controls
 	map.showEnd = false;
-	if(endY[endX.length] === 'S')
+	if(endY[endX.length] === 'S' || endY[endX.length] === 'SW')
 		map.showEnd = true;
+	map.alwaysShowEnd = false;
+	if(endY[endX.length] === 'A')
+		map.alwaysShowEnd = true;
 	map.white = false;
-	if(endY[endX.length] === 'W')
+	if(endY[endX.length] === 'W' || endY[endX.length] === 'SW')
 		map.white = true;
 	// parse lights
 	map.lights = [];
@@ -89,7 +92,10 @@ var parseMap = function(level){
 		}
 	}
 	picture.filters = [ new createjs.BoxBlurFilter(12,12,1) ];
-	picture.cache(0,0,WIDTH,HEIGHT);
+	if(!map.white)
+		picture.cache(0,0,WIDTH,HEIGHT);
+	else
+		picture.cache(24,24,WIDTH-48,HEIGHT-48)
 	map.block = block;
 	map.picture = picture;
 	return map;
@@ -134,25 +140,31 @@ var generatePerson = function(color){
 	var rout = ME_R*1.25;
 	var rspeed = (rmax-rmin)/40;
 	var frameCount = 41;
-	var rect = new createjs.Rectangle(-ME_R, -ME_R, ME_R*2, ME_R*2);
+	var rect = new createjs.Rectangle(-rout, -rout, rout*2, rout*2);
 	for(var i=rmax; i>rmin-(1e-6); i-=rspeed)
 		ss.addFrame(generateRound(color,i,rout), rect);
 	var frames = [];
-	for(var i=0; i<frameCount; i++)
+	for(var i=0; i<frameCount/2; i++)
 		frames.push(i);
-	for(var i=frameCount-2; i>0; i--)
+	for(var i=Math.floor(frameCount/2)-2; i>0; i--)
 		frames.push(i);
 	ss.addAnimation('normal', frames, 'normal');
 	var frames = [];
-	for(var i=0; i<frameCount/1.5; i+=8)
+	for(var i=0; i<frameCount; i+=8)
 		frames.push(i);
-	for(var i=Math.floor(frameCount/1.5)-1; i>0; i-=8)
+	for(var i=frameCount-4; i>0; i-=8)
 		frames.push(i);
 	ss.addAnimation('fast', frames, 'fast');
 	return new createjs.BitmapAnimation(ss.build());
 };
-var mePicture = generatePerson('rgb(128,128,128)');
-var herPicture = generatePerson('rgb(128,128,128)');
+
+var whiteMap = (function(){
+	var b = new createjs.Shape();
+	b.graphics.f('rgb(128,128,128)').r(12,12,WIDTH-24,HEIGHT-24);
+	b.filters = [ new createjs.BoxBlurFilter(12,12,1) ];
+	b.cache(0,0,WIDTH,HEIGHT);
+	return b;
+})();
 
 // user operations
 
@@ -323,7 +335,7 @@ var startLevel = function(level){
 							storyText.color = '#FBB7BF';
 							storyText.text = story[i].slice(5);
 							storyText.cache(-480, -40, 960, 80);
-							fadeAlphaMax = story[i].length/2 * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
+							fadeAlphaMax = story[i].length * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
 							storyContainer.addChild(storyText);
 						}
 					} else {
@@ -690,32 +702,37 @@ var startLevel = function(level){
 			}
 		});
 
-		// show me
+		// show me and map
+		if(map.white) {
+			game.stage.addChild(map.picture);
+			game.stage.addChild(whiteMap);
+		}
 		game.stage.addChild(mePicture);
 		mePicture.x = map.startX;
 		mePicture.y = map.startY;
 		mePicture.gotoAndPlay('normal');
+		if(!map.white)
+			game.stage.addChild(map.picture);
 
 		// show end if needed
-		if(map.showEnd) {
+		if(map.showEnd || map.alwaysShowEnd) {
 			var endPicture = generatePerson('#FBB7BF');
 			game.stage.addChild(endPicture);
 			endPicture.x = map.endX;
 			endPicture.y = map.endY;
-			endPicture.alpha = 4;
-			endPicture.gotoAndPlay('normal');
-			var endAni = function(){
-				endPicture.alpha -= 0.02;
-				if(endPicture.alpha <= 0) {
-					createjs.Ticker.removeEventListener('tick', endAni);
-					game.stage.removeChild(endPicture);
-				}
-			};
-			createjs.Ticker.addEventListener('tick', endAni);
+				endPicture.gotoAndPlay('normal');
+			if(map.showEnd) {
+				endPicture.alpha = 4;
+				var endAni = function(){
+					endPicture.alpha -= 0.02;
+					if(endPicture.alpha <= 0) {
+						createjs.Ticker.removeEventListener('tick', endAni);
+						game.stage.removeChild(endPicture);
+					}
+				};
+				createjs.Ticker.addEventListener('tick', endAni);
+			}
 		}
-
-		// show map
-		game.stage.addChild(map.picture);
 
 		// update lights
 		var lightsLayer = new createjs.Container().set({x:0,y:0});
@@ -793,6 +810,7 @@ var startLevel = function(level){
 			var hpShape = new createjs.Shape();
 			hpShape.graphics.f('#fff').r(0,0,8,100);
 			var hpPicture = new createjs.Container().set({x:50, y:50, alpha:0.3});
+			if(map.white) whiteMap.alpha = 1.3 - hpPicture.alpha;
 			hpPicture.addChild(hpBackground);
 			hpPicture.addChild(hpOutline);
 			hpPicture.addChild(hpShape);
@@ -807,15 +825,21 @@ var startLevel = function(level){
 				if(meHp < meHpOri) {
 					meHpOri = meHp;
 					var h = 100*meHp/meHpMax;
-					hpShape.graphics.c().f('#fff').r(0,100-h,8,h);
+					if(h > 0)
+						hpShape.graphics.c().f('#fff').r(0,100-h,8,h);
+					else
+						hpShape.graphics.c();
 					if(hpShapeAni <= 0) hpShapeAni = 1;
 				}
 				if(hpPicture.alpha >= 0.8)
 					hpShapeAni = -1;
-				if(hpShapeAni === 1)
+				if(hpShapeAni === 1) {
 					hpPicture.alpha += HP_SHAPE_ANI_SPEED;
-				else if(hpShapeAni === -1)
+					if(map.white) whiteMap.alpha = 1.3 - hpPicture.alpha;
+				} else if(hpShapeAni === -1) {
 					hpPicture.alpha -= HP_SHAPE_ANI_SPEED;
+					if(map.white) whiteMap.alpha = 1.3 - hpPicture.alpha;
+				}
 			});
 		}
 
