@@ -2,11 +2,10 @@
 
 // consts
 
-var VERSION = '0.1.20130821';
+var VERSION = '0.2.20130822';
 var FPS = 32;
 var WIDTH = 960;
 var HEIGHT = 540;
-var FONT = ' "文泉驿正黑","微软雅黑","黑体" ';
 var USE_ADVANCED_LOADING = false;
 var STORAGE_ID = 'tomorrow';
 var STORAGE_VERSION = VERSION;
@@ -16,7 +15,8 @@ var DEFAULT_SETTINGS = {
 	volume: 100,
 	curLevel: 0,
 	levelReached: 0,
-	difficulty: 1
+	difficulty: 1,
+	langs: ''
 };
 
 // global vars
@@ -34,30 +34,31 @@ game.saveSettings = function(){
 	localStorage[STORAGE_ID] = JSON.stringify(game.settings);
 };
 
-game.createTextButton = function(text, fontSize, background, centerX, centerY, width, height, clickFunc){
+game.createTextButton = function(text, fontSize, background, centerX, centerY, clickFunc){
 	var button = new createjs.Container();
+	var t1 = new createjs.Text(text, fontSize+'px'+game.lang.font, '#888');
+	var t2 = new createjs.Text(text, fontSize+'px'+game.lang.font, '#00d2ff');
 	var bg = new createjs.Shape();
+	var width = t1.getMeasuredWidth() + 5;
+	var height = t1.getMeasuredHeight() + 5;
 	bg.graphics.s(background).f(background).r(-width/2, -height/2, width, height);
-	button.addChild(bg,
-		new createjs.Text(text, fontSize+'px'+FONT, '#888'),
-		new createjs.Text(text, fontSize+'px'+FONT, '#00d2ff')
-	);
-	button.getChildAt(1).lineHeight = height;
-	button.getChildAt(2).lineHeight = height;
-	button.getChildAt(1).textAlign = 'center';
-	button.getChildAt(2).textAlign = 'center';
-	button.getChildAt(1).textBaseline = 'middle';
-	button.getChildAt(2).textBaseline = 'middle';
-	button.getChildAt(2).visible = false;
+	button.addChild(bg, t1, t2);
+	t1.lineHeight = height;
+	t2.lineHeight = height;
+	t1.textAlign = 'center';
+	t2.textAlign = 'center';
+	t1.textBaseline = 'middle';
+	t2.textBaseline = 'middle';
+	t2.visible = false;
 	button.x = centerX;
 	button.y = centerY;
 	button.addEventListener('mouseover', function(){
-		button.getChildAt(2).visible = true;
-		button.getChildAt(1).visible = false;
+		t2.visible = true;
+		t1.visible = false;
 	});
 	button.addEventListener('mouseout', function(){
-		button.getChildAt(1).visible = true;
-		button.getChildAt(2).visible = false;
+		t1.visible = true;
+		t2.visible = false;
 	});
 	button.addEventListener('click', clickFunc);
 	return button;
@@ -102,19 +103,19 @@ game.showCover = function(){
 	bottomBar.addChild(lastleafLink);
 
 	// show license link
-	var licenseLink = game.createTextButton('授权协议', 16, '#000', 250, 0, 72, 24, function(){
+	var licenseLink = game.createTextButton(game.str[3], 16, '#000', 270, 0, function(){
 		window.open('license.html', '_blank');
 	});
 	bottomBar.addChild(licenseLink);
 
 	// show about link
-	var aboutLink = game.createTextButton('版本 0.1', 16, '#000', 340, 0, 72, 24, function(){
+	var aboutLink = game.createTextButton('v0.1', 16, '#000', 350, 0, function(){
 		window.open('change_logs.html', '_blank');
 	});
 	bottomBar.addChild(aboutLink);
 
 	// show subtitle
-	var subtitle = game.createTextButton('改编自同名短篇小说', 20, '#000', 0, 0, 190, 30, function(){
+	var subtitle = game.createTextButton(game.str[4], 16, '#000', 0, 0, function(){
 		window.open('http://blog.programet.org/2010/04/%E6%98%8E%E5%A4%A9.html', '_blank');
 	});
 	bottomBar.addChild(subtitle);
@@ -133,7 +134,7 @@ game.showCover = function(){
 	var progressShape = new createjs.Shape();
 	var progress = progressShape.graphics;
 	progress.f('#888').r(0, 0, 0, 3);
-	var progressText = new createjs.Text('正在加载资源……', '20px'+FONT, '#888');
+	var progressText = new createjs.Text(game.str[5], '20px'+game.lang.font, '#888');
 	progressText.textAlign = 'center';
 	progressText.textBaseline = 'middle';
 	progressText.x = 400;
@@ -179,41 +180,45 @@ game.showCover = function(){
 			game.maps = q.getResult('maps').split('\n');
 			game.words = q.getResult('words');
 		}
-		// read settings
-		try {
-			game.settings = JSON.parse(localStorage[STORAGE_ID]);
-			if(game.settings.version !== STORAGE_VERSION) {
-				// update settings
-				for(var k in DEFAULT_SETTINGS)
-					if(typeof(game.settings[k]) === 'undefined')
-						game.settings[k] = DEFAULT_SETTINGS[k];
-				game.settings.version = STORAGE_VERSION;
-				game.saveSettings();
-			}
-		} catch(e) {
-			game.settings = DEFAULT_SETTINGS;
-		}
+		// show language link
+		var switchLang = function(newLang){
+			game.settings.lang = newLang;
+			game.lang = game.langs[newLang];
+			game.str = game.lang.str;
+			createjs.Ticker.removeAllEventListeners('tick');
+			game.stage.removeAllChildren();
+			game.showCover();
+		};
+		if(game.settings.lang === 'zh-CN')
+			var langLink = game.createTextButton('English', 20, '#000', WIDTH/2, 450, function(){
+				switchLang('en');
+			});
+		else
+			var langLink = game.createTextButton('简体中文', 20, '#000', WIDTH/2, 450, function(){
+				switchLang('zh-CN');
+			});
+		game.stage.addChild(langLink);
 		// show difficulty button
 		var difficultyButton = [
-			game.createTextButton('难度：傻瓜', 20, '#000', WIDTH/2, 420, 110, 30, function(){
+			game.createTextButton(game.str[6], 20, '#000', WIDTH/2, 410, function(){
 				difficultyButton[0].visible = false;
 				difficultyButton[1].visible = true;
 				game.settings.difficulty = 1;
 				difficultyButton[1].dispatchEvent('mouseover');
 			}),
-			game.createTextButton('难度：新手', 20, '#000', WIDTH/2, 420, 110, 30, function(){
+			game.createTextButton(game.str[7], 20, '#000', WIDTH/2, 410, function(){
 				difficultyButton[1].visible = false;
 				difficultyButton[2].visible = true;
 				game.settings.difficulty = 2;
 				difficultyButton[2].dispatchEvent('mouseover');
 			}),
-			game.createTextButton('难度：勇士', 20, '#000', WIDTH/2, 420, 110, 30, function(){
+			game.createTextButton(game.str[8], 20, '#000', WIDTH/2, 410, function(){
 				difficultyButton[2].visible = false;
 				difficultyButton[3].visible = true;
 				game.settings.difficulty = 3;
 				difficultyButton[3].dispatchEvent('mouseover');
 			}),
-			game.createTextButton('难度：疯子', 20, '#000', WIDTH/2, 420, 110, 30, function(){
+			game.createTextButton(game.str[9], 20, '#000', WIDTH/2, 410, function(){
 				difficultyButton[3].visible = false;
 				difficultyButton[0].visible = true;
 				game.settings.difficulty = 0;
@@ -221,16 +226,16 @@ game.showCover = function(){
 			})
 		];
 		difficultyButton[0].addEventListener('mouseover', function(){
-			hint.show('你真的是傻瓜吗？', 3000);
+			hint.show(game.str[10], 3000);
 		});
 		difficultyButton[1].addEventListener('mouseover', function(){
-			hint.show('如果未曾通关，这个难度比较合适吧……', 3000);
+			hint.show(game.str[11], 3000);
 		});
 		difficultyButton[2].addEventListener('mouseover', function(){
-			hint.show('这是个挑战！', 3000);
+			hint.show(game.str[12], 3000);
 		});
 		difficultyButton[3].addEventListener('mouseover', function(){
-			hint.show('你不可能通关的，除非你疯了。', 3000);
+			hint.show(game.str[13], 3000);
 		});
 		difficultyButton[0].set({visible: false}).addEventListener('mouseout', hint.hide);
 		difficultyButton[1].set({visible: false}).addEventListener('mouseout', hint.hide);
@@ -238,20 +243,20 @@ game.showCover = function(){
 		difficultyButton[3].set({visible: false}).addEventListener('mouseout', hint.hide);
 		difficultyButton[game.settings.difficulty].visible = true;
 		// show music button
-		var musicButtonOn = game.createTextButton('音乐：开', 20, '#000', WIDTH/2, 375, 90, 30, function(){
+		var musicButtonOn = game.createTextButton(game.str[14], 20, '#000', WIDTH/2, 370, function(){
 			musicButtonOn.visible = false;
 			musicButtonOff.visible = true;
 			game.settings.musicOn = false;
 			musicButtonOff.dispatchEvent('mouseover');
 		});
-		var musicButtonOff = game.createTextButton('音乐：关', 20, '#000', WIDTH/2, 375, 90, 30, function(){
+		var musicButtonOff = game.createTextButton(game.str[15], 20, '#000', WIDTH/2, 370, function(){
 			musicButtonOff.visible = false;
 			musicButtonOn.visible = true;
 			game.settings.musicOn = true;
 			musicButtonOn.dispatchEvent('mouseover');
 		});
 		var musicHint = function(){
-			hint.show('“M”键可以开关音乐，“<”和“>”键调节音量', 3000);
+			hint.show(game.str[16], 3000);
 		};
 		musicButtonOn.addEventListener('mouseover', musicHint);
 		musicButtonOff.addEventListener('mouseover', musicHint);
@@ -266,10 +271,10 @@ game.showCover = function(){
 		}
 		// show start button
 		if(game.settings.curLevel)
-			var t = '继续游戏';
+			var t = game.str[17];
 		else
-			var t = '开始游戏';
-		var startButton = game.createTextButton(t, 20, '#000', WIDTH/2, 330, 90, 30, function(){
+			var t = game.str[18];
+		var startButton = game.createTextButton(t, 20, '#000', WIDTH/2, 330, function(){
 			// save settings
 			game.saveSettings();
 			// remove key bindings
@@ -292,9 +297,9 @@ game.showCover = function(){
 		});
 		startButton.addEventListener('mouseover', function(){
 			if(game.settings.curLevel)
-				hint.show('游戏已进行至第 '+game.settings.curLevel+' 关，按“R”键可清除游戏进度', 3000);
+				hint.show(game.str[19].replace('%1', game.settings.curLevel), 3000);
 			else
-				hint.show('开始新的游戏', 3000);
+				hint.show(game.str[20], 3000);
 		});
 		startButton.addEventListener('mouseout', function(){
 			hint.hide();
@@ -341,13 +346,13 @@ game.showCover = function(){
 			} else if(e.keyCode === 188) {
 				if(game.settings.volume > 0)
 					game.settings.volume -= 10;
-				hint.show('音量：'+game.settings.volume, 1000);
+				hint.show(game.str[22]+game.settings.volume, 1000);
 			} else if(e.keyCode === 190) {
 				if(game.settings.volume < 100)
 					game.settings.volume += 10;
-				hint.show('音量：'+game.settings.volume, 1000);
+				hint.show(game.str[22]+game.settings.volume, 1000);
 			} else if(e.keyCode === 82) {
-				if(confirm('清除游戏进度和游戏设置？')) {
+				if(confirm(game.str[21])) {
 					delete localStorage[STORAGE_ID];
 					game.stage.removeAllChildren();
 					createjs.Ticker.removeAllEventListeners('tick');
@@ -417,10 +422,35 @@ game.showCover = function(){
 
 document.bindReady(function(){
 
+	// read settings
+	try {
+		game.settings = JSON.parse(localStorage[STORAGE_ID]);
+		if(game.settings.version !== STORAGE_VERSION) {
+			// update settings
+			for(var k in DEFAULT_SETTINGS)
+				if(typeof(game.settings[k]) === 'undefined')
+					game.settings[k] = DEFAULT_SETTINGS[k];
+			game.settings.version = STORAGE_VERSION;
+			game.saveSettings();
+		}
+	} catch(e) {
+		game.settings = DEFAULT_SETTINGS;
+	}
+
+	// determine langs
+	if(!game.settings.lang) {
+		if(navigator.language === 'zh-CN')
+			game.settings.lang = 'zh-CN';
+		else
+			game.settings.lang = 'en';
+	}
+	game.lang = game.langs[game.settings.lang];
+	game.str = game.lang.str;
+
 	// check compatibility
-	hint.show('正在检测浏览器兼容性……');
+	hint.show(game.str[0]);
 	if(HTML5Compatibility.unsupported('JavaScript/JSON', 'DOM/Canvas', 'DOM/Audio', 'DOM/LocalStorage', 'DOM/AddEventListener').length) {
-		hint.show('你的浏览器不支持本游戏，请使用其他浏览器访问，或下载离线版本');
+		hint.show(game.str[1]);
 		return;
 	}
 
@@ -430,7 +460,7 @@ document.bindReady(function(){
 	createjs.Sound.registerPlugins([createjs.HTMLAudioPlugin]);
 
 	// load title resource
-	hint.show('正在载入页面……');
+	hint.show(game.str[2]);
 	var q = new createjs.LoadQueue(USE_ADVANCED_LOADING, 'data/');
 	q.addEventListener('complete', function(){
 		hint.hide();
