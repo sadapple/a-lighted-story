@@ -5,6 +5,7 @@
 // graphics
 var WIDTH = 960;
 var HEIGHT = 540;
+var FONT = ' "文泉驿正黑","微软雅黑","黑体" ';
 var ME_R = 12;
 var LIGHT_R_MAX = 50*6;
 
@@ -323,14 +324,14 @@ var startLevel = function(level){
 								y: (HEIGHT-img.height)/2
 							}) );
 						} else if(story[i].slice(0,8) === '!author:') {
-							storyText.font = '24px'+game.lang.font;
+							storyText.font = '24px'+FONT;
 							storyText.color = '#c0c0c0';
 							storyText.text = story[i].slice(8);
 							storyText.cache(-480, -40, 960, 80);
 							fadeAlphaMax = story[i].length/2 * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
 							storyContainer.addChild(storyText);
 						} else if(story[i].slice(0,5) === '!her:') {
-							storyText.font = '30px'+game.lang.font;
+							storyText.font = '30px'+FONT;
 							storyText.color = '#FBB7BF';
 							storyText.text = story[i].slice(5);
 							storyText.cache(-480, -40, 960, 80);
@@ -338,7 +339,7 @@ var startLevel = function(level){
 							storyContainer.addChild(storyText);
 						}
 					} else {
-						storyText.font = '30px'+game.lang.font;
+						storyText.font = '30px'+FONT;
 						storyText.color = '#c0c0c0';
 						storyText.text = story[i];
 						storyText.cache(-480, -20, 960, 40);
@@ -491,13 +492,13 @@ var startLevel = function(level){
 		pauseLayerFrame.addChild(new createjs.Shape(
 			(new createjs.Graphics()).f('rgba(64,64,64,0.7)').r(30,80,440,3)
 		));
-		pauseLayerFrame.addChild( (new createjs.Text(game.str[23], '20px'+game.lang.font, 'black')).set({
+		pauseLayerFrame.addChild( (new createjs.Text('已暂停，按Esc或“P”键继续', '20px'+FONT, 'black')).set({
 			textAlign: 'center',
 			textBaseline: 'top',
 			x: 250,
 			y: 40
 		}) );
-		pauseLayerFrame.addChild( (new createjs.Text(game.str[24], '16px'+game.lang.font, 'rgb(64,64,64)')).set({
+		pauseLayerFrame.addChild( (new createjs.Text('按方向键或WASD选择关卡，Enter跳转，“R”键返回封面', '16px'+FONT, 'rgb(64,64,64)')).set({
 			textAlign: 'center',
 			textBaseline: 'bottom',
 			x: 250,
@@ -517,7 +518,7 @@ var startLevel = function(level){
 					(new createjs.Graphics()).ss(2).s('rgb(128,128,128)')
 					.r(-20+centerX,-20+centerY,40,40)
 				)) );
-			levelLinkFrame.addChild( new createjs.Text(text, '16px'+game.lang.font, 'black').set({
+			levelLinkFrame.addChild( new createjs.Text(text, '16px'+FONT, 'black').set({
 				textAlign: 'center',
 				textBaseline: 'middle',
 				x: centerX,
@@ -893,10 +894,10 @@ game.start = function(){
 	var updateVolume = function(){
 		if(game.settings.musicOn) {
 			createjs.Sound.setVolume(game.settings.volume/100);
-			hint.show(game.str[25]+game.settings.volume, 1000);
+			hint.show('音乐已经打开，音量：'+game.settings.volume, 1000);
 		} else {
 			createjs.Sound.setVolume(0);
-			hint.show(game.str[26], 1000);
+			hint.show('音乐已经关闭', 1000);
 		}
 		game.saveSettings();
 	};
