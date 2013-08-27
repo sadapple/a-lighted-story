@@ -2,7 +2,8 @@
 
 // consts
 
-var VERSION = '0.2.20130822';
+var FOR_MOBILE = true;
+var VERSION = '0.2.20130824';
 var FPS = 32;
 var WIDTH = 960;
 var HEIGHT = 540;
@@ -25,8 +26,9 @@ window.game = {};
 game.settings = null;
 game.stage = null;
 game.curMusic = -1;
+game.focused = true;
 var initResource = null;
-var mainResource = null;
+game.highQualityMode = (!MOBILE);
 
 // global funcs
 
@@ -121,6 +123,10 @@ game.showCover = function(){
 	bottomBar.addChild(subtitle);
 
 	// show title
+	if(game.settings.lang === 'zh-CN')
+		document.title = '明天 | LastLeaf';
+	else
+		document.title = 'Tomorrow | LastLeaf';
 	var titleImg = new createjs.Bitmap(res.getResult('title'));
 	game.stage.addChild(titleImg);
 	titleImg.x = titleImg.cx = (WIDTH - titleImg.image.width) / 2;
@@ -155,6 +161,7 @@ game.showCover = function(){
 		var dest = (Math.random()-0.5)*radius*2 + center;
 		return (dest-cur)*acc + cur;
 	};
+	var titleAniCanPause = false;
 	var titleAni = function(){
 		titleImg.x = centeredMoving(titleImg.x, titleImg.cx, 8, 0.06);
 		titleImg.y = centeredMoving(titleImg.y, titleImg.cy, 8, 0.06);
@@ -166,15 +173,24 @@ game.showCover = function(){
 			progressBar.alpha -= 0.02;
 			if(progressBar.alpha <= 0.5) progressBar.isAlphaUp = true;
 		}
-		game.stage.update();
+		if(game.focused || !titleAniCanPause) {
+			game.stage.update();
+			if(game.mainResource) titleAniCanPause = true;
+			else titleAniCanPause = false;
+		}
 	};
 	createjs.Ticker.addEventListener('tick', titleAni);
 
 	// loaded
-	var resourceLoaded = function(){
-		var q = mainResource;
-		game.mainResource = mainResource;
+	var resourceLoaded = function(e){
+		var q = game.mainResource = e.target;
 		progress.c().f('#888').r(0, 0, 800, 3);
+		// update title for language changing
+		if(game.settings.lang === 'zh-CN')
+			document.title = '明天 | LastLeaf';
+		else
+			document.title = 'Tomorrow | LastLeaf';
+		titleImg.image = q.getResult('tomorrow');
 		// get results
 		if(location.protocol !== 'file:') {
 			game.maps = q.getResult('maps').split('\n');
@@ -183,10 +199,12 @@ game.showCover = function(){
 		// show language link
 		var switchLang = function(newLang){
 			game.settings.lang = newLang;
+			game.saveSettings();
 			game.lang = game.langs[newLang];
 			game.str = game.lang.str;
 			createjs.Ticker.removeAllEventListeners('tick');
 			game.stage.removeAllChildren();
+			game.mainResource = null;
 			game.showCover();
 		};
 		if(game.settings.lang === 'zh-CN')
@@ -197,7 +215,6 @@ game.showCover = function(){
 			var langLink = game.createTextButton('简体中文', 20, '#000', WIDTH/2, 450, function(){
 				switchLang('zh-CN');
 			});
-		game.stage.addChild(langLink);
 		// show difficulty button
 		var difficultyButton = [
 			game.createTextButton(game.str[6], 20, '#000', WIDTH/2, 410, function(){
@@ -305,6 +322,7 @@ game.showCover = function(){
 			hint.hide();
 		});
 		// button animation
+		langLink.alpha = 0;
 		difficultyButton[0].alpha = 0;
 		difficultyButton[1].alpha = 0;
 		difficultyButton[2].alpha = 0;
@@ -314,6 +332,7 @@ game.showCover = function(){
 		startButton.alpha = 0;
 		progressBar.removeChild(progressText);
 		game.stage.addChild(
+			langLink,
 			difficultyButton[0],
 			difficultyButton[1],
 			difficultyButton[2],
@@ -324,6 +343,7 @@ game.showCover = function(){
 		);
 		createjs.Ticker.addEventListener('tick', function(){
 			if(musicButtonOn.alpha >= 1) return;
+			langLink.alpha += 0.1;
 			difficultyButton[0].alpha += 0.1;
 			difficultyButton[1].alpha += 0.1;
 			difficultyButton[2].alpha += 0.1;
@@ -367,10 +387,10 @@ game.showCover = function(){
 	};
 
 	// start load main resource if needed
-	if(mainResource) {
-		resourceLoaded();
+	if(game.mainResource) {
+		resourceLoaded({target: game.mainResource});
 	} else {
-		var q = mainResource = new createjs.LoadQueue(USE_ADVANCED_LOADING, 'data/');
+		var q = new createjs.LoadQueue(USE_ADVANCED_LOADING, 'data/');
 		q.installPlugin(createjs.Sound);
 		q.addEventListener('progress', function(e){
 			progress.c().f('#888').r(0, 0, e.progress*800, 3);
@@ -385,7 +405,7 @@ game.showCover = function(){
 				{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
 				{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
 				{id:'bgm4', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
-				{id:'tomorrow', src:'image/title.png'},
+				{id:'tomorrow', src:'image/title_'+game.settings.lang+'.png'},
 				{src:'js/levels.js?v='+VERSION}
 			]);
 		} else {
@@ -410,7 +430,7 @@ game.showCover = function(){
 				{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
 				{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
 				{id:'bgm4', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
-				{id:'tomorrow', src:'image/title.png'},
+				{id:'tomorrow', src:'image/title_'+game.settings.lang+'.png'},
 				{src:'js/levels.js'}
 			]);
 		}
@@ -454,6 +474,14 @@ document.bindReady(function(){
 		return;
 	}
 
+	// window focus status
+	window.addEventListener('focus', function(){
+		game.focused = true;
+	}, false);
+	window.addEventListener('blur', function(){
+		game.focused = false;
+	}, false);
+
 	// init canvas
 	document.getElementById('wrapper').innerHTML = '<canvas id="main_canvas" width="'+WIDTH+'" height="'+HEIGHT+'"></canvas>';
 	game.stage = new createjs.Stage('main_canvas');
@@ -468,7 +496,7 @@ document.bindReady(function(){
 		game.showCover();
 	});
 	q.loadManifest([
-		{id:'title', src:'image/title.png'},
+		{id:'title', src:'image/title_'+game.settings.lang+'.png'},
 		{id:'lastleaf', src:'image/lastleaf.png'},
 		{id:'lastleaf_grey', src:'image/lastleaf_grey.png'}
 	]);

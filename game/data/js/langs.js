@@ -40,10 +40,10 @@ game.langs = {
 			'LICENSE',
 			'Base on Short Story of the Same Name',
 			'Loading...',
-			'Difficulty： Idiot',
-			'Difficulty： Newbie',
-			'Difficulty： Braver',
-			'Difficulty： Madman',
+			'Difficulty: Idiot',
+			'Difficulty: Newbie',
+			'Difficulty: Braver',
+			'Difficulty: Madman',
 			'ARE YOU SURE???',
 			'It suits you if you are new to this game...',
 			'It\'s a challenge!',
@@ -59,8 +59,8 @@ game.langs = {
 			'Volume: ',
 			'Paused. Press "Esc" or "P" to continue...',
 			'WASD, arrow keys and "Enter" to select levels.',
-			'音乐已经打开，音量：',
-			'音乐已经关闭'
+			'Music is on. Volume: ',
+			'Music is off.'
 		]
 	}
 };

@@ -10,7 +10,7 @@ var LIGHT_R_MAX = 50*6;
 
 // game
 var ME_HP_MAX = [4000,2000,1200,800];
-var LIGHTS_SPEED = [1,2,3,3.5];
+var LIGHTS_SPEED = [2,2.5,3,3.5];
 var ME_MOVE_SPEED = 3;
 var ME_ACTION_SPEED = 6; // no larger than 6
 var ME_ACTION_DAMAGE = 4;
@@ -133,6 +133,7 @@ var generateLight = function(r, x, y){
 };
 
 var generatePerson = function(color){
+	// TODO : person not shown in chrome
 	var ss = new createjs.SpriteSheetBuilder();
 	var rmax = ME_R*0.75;
 	var rmin = ME_R*0.25;
@@ -190,7 +191,6 @@ var userCtrl = {
 
 // pause and unpause
 
-var windowFocus = true;
 var pause = function(){
 	userCtrl.paused = true;
 };
@@ -216,10 +216,9 @@ var startLevel = function(level){
 				game.started = false;
 				createjs.Sound.stop();
 				createjs.Ticker.removeAllEventListeners('tick');
+				game.mouseFuncRemove();
 				window.removeEventListener('keydown', game.keyDownFunc);
 				window.removeEventListener('keyup', game.keyUpFunc);
-				window.removeEventListener('blur', game.blurFunc);
-				window.removeEventListener('focus', game.focusFunc);
 				game.showCover();
 			}
 		}
@@ -419,20 +418,36 @@ var startLevel = function(level){
 			game.settings.levelReached = level;
 		game.saveSettings();
 
+		// show keys for mobile
+		if(MOBILE)
+			document.getElementById('keys').style.display = 'block';
+
 		// init
 		var meHpMax = ME_HP_MAX[game.settings.difficulty];
 		var meHp = meHpMax;
 		var map = parseMap(level);
+		var mePicture = null;
 		if(map.white)
-			var mePicture = generatePerson('#000');
+			mePicture = generatePerson('#000');
 		else
-			var mePicture = generatePerson('#808080');
+			mePicture = generatePerson('#808080');
 		var lights = map.lights;
 		userCtrlReset();
-		if(!windowFocus) pause();
+
+		// auto pause
+		createjs.Ticker.addEventListener('tick', function(){
+			if(!game.focused && !userCtrl.paused) {
+				pause();
+				userCtrl.up = false;
+				userCtrl.down = false;
+				userCtrl.left = false;
+				userCtrl.right = false;
+			}
+		});
 
 		// end level
 		var levelEnd = function(endFunc){
+			if(MOBILE) document.getElementById('keys').style.display = 'none';
 			createjs.Ticker.removeAllEventListeners('tick');
 			var fadingRect = (new createjs.Shape()).set({alpha: 0});
 			fadingRect.graphics.f('black').r(0,0,WIDTH,HEIGHT);
@@ -795,7 +810,8 @@ var startLevel = function(level){
 		});
 
 		// show clouds
-		cloudsStart();
+		if(!MOBILE)
+			cloudsStart();
 
 		// show hp from level 1
 		if(level > 0) {
@@ -987,6 +1003,36 @@ game.start = function(){
 		68: keyEndRight
 	};
 
+	// mouse event
+	if(MOBILE) {
+		document.getElementById('key_up').addEventListener('touchstart', keyStartUp, false);
+		document.getElementById('key_up').addEventListener('touchend', keyEndUp, false);
+		document.getElementById('key_down').addEventListener('touchstart', keyStartDown, false);
+		document.getElementById('key_down').addEventListener('touchend', keyEndDown, false);
+		document.getElementById('key_left').addEventListener('touchstart', keyStartLeft, false);
+		document.getElementById('key_left').addEventListener('touchend', keyEndLeft, false);
+		document.getElementById('key_right').addEventListener('touchstart', keyStartRight, false);
+		document.getElementById('key_right').addEventListener('touchend', keyEndRight, false);
+		document.getElementById('key_space').addEventListener('touchstart', keyStartAction, false);
+		document.getElementById('key_space').addEventListener('touchend', keyEndAction, false);
+		document.getElementById('key_pause').addEventListener('touchend', keyPause, false);
+		document.getElementById('key_enter').addEventListener('touchend', keySkip, false);
+		game.mouseFuncRemove = function(){
+			document.getElementById('key_up').removeEventListener('touchstart', keyStartUp);
+			document.getElementById('key_up').removeEventListener('touchend', keyEndUp);
+			document.getElementById('key_down').removeEventListener('touchstart', keyStartDown);
+			document.getElementById('key_down').removeEventListener('touchend', keyEndDown);
+			document.getElementById('key_left').removeEventListener('touchstart', keyStartLeft);
+			document.getElementById('key_left').removeEventListener('touchend', keyEndLeft);
+			document.getElementById('key_right').removeEventListener('touchstart', keyStartRight);
+			document.getElementById('key_right').removeEventListener('touchend', keyEndRight);
+			document.getElementById('key_space').removeEventListener('touchstart', keyStartAction);
+			document.getElementById('key_space').removeEventListener('touchend', keyEndAction);
+			document.getElementById('key_pause').removeEventListener('touchend', keyPause);
+			document.getElementById('key_enter').removeEventListener('touchend', keySkip);
+		};
+	}
+
 	// basic listeners
 	game.keyDownFunc = function(e){
 		if(keyDownFunc[e.keyCode]) {
@@ -1003,18 +1049,8 @@ game.start = function(){
 	};
 	window.addEventListener('keyup', game.keyUpFunc, false);
 	game.blurFunc = function(e){
-		windowFocus = false;
 		pause();
-		userCtrl.up = false;
-		userCtrl.down = false;
-		userCtrl.left = false;
-		userCtrl.right = false;
 	};
-	window.addEventListener('blur', game.blurFunc, false);
-	game.focusFunc = function(e){
-		windowFocus = true;
-	};
-	window.addEventListener('focus', game.focusFunc, false);
 
 	// enter level
 	game.stage.enableMouseOver(0);
