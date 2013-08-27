@@ -133,14 +133,13 @@ var generateLight = function(r, x, y){
 };
 
 var generatePerson = function(color){
-	// TODO : person not shown in chrome
 	var ss = new createjs.SpriteSheetBuilder();
 	var rmax = ME_R*0.75;
 	var rmin = ME_R*0.25;
 	var rout = ME_R*1.25;
 	var rspeed = (rmax-rmin)/40;
 	var frameCount = 41;
-	var rect = new createjs.Rectangle(-rout, -rout, rout*2, rout*2);
+	var rect = new createjs.Rectangle(1-rout, 1-rout, (rout-1)*2, (rout-1)*2);
 	for(var i=rmax; i>rmin-(1e-6); i-=rspeed)
 		ss.addFrame(generateRound(color,i,rout), rect);
 	var frames = [];
