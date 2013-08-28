@@ -111,7 +111,7 @@ game.showCover = function(){
 	bottomBar.addChild(licenseLink);
 
 	// show about link
-	var aboutLink = game.createTextButton('v0.1', 16, '#000', 350, 0, function(){
+	var aboutLink = game.createTextButton('v0.2', 16, '#000', 350, 0, function(){
 		window.open('change_logs.html', '_blank');
 	});
 	bottomBar.addChild(aboutLink);
@@ -459,7 +459,7 @@ document.bindReady(function(){
 
 	// determine langs
 	if(!game.settings.lang) {
-		if(navigator.language === 'zh-CN')
+		if(navigator.language === 'zh-CN' || navigator.userLanguage === 'zh-CN')
 			game.settings.lang = 'zh-CN';
 		else
 			game.settings.lang = 'en';
@@ -469,8 +469,9 @@ document.bindReady(function(){
 
 	// check compatibility
 	hint.show(game.str[0]);
-	if(HTML5Compatibility.unsupported('JavaScript/JSON', 'DOM/Canvas', 'DOM/Audio', 'DOM/LocalStorage', 'DOM/AddEventListener').length) {
+	if(!HTML5Compatibility.supportAll()) {
 		hint.show(game.str[1]);
+		alert(game.str[1]);
 		return;
 	}
 

@@ -5,19 +5,16 @@
 (function(){
 	// checkers
 	var checkers = {
-
 		'JavaScript/TypedArray':
 			function() {
 				if(typeof(Uint8Array) !== 'undefined' && typeof(Float64Array) !== 'undefined')
 					return true;
 			},
-
 		'JavaScript/JSON':
 			function() {
 				if(typeof(JSON) !== 'undefined')
 					return true;
 			},
-
 		'DOM/Canvas':
 			function() {
 				try {
@@ -25,7 +22,6 @@
 						return true;
 				} catch(e) {}
 			},
-
 		'DOM/Audio':
 			function() {
 				try {
@@ -33,28 +29,18 @@
 						return true;
 				} catch(e) {}
 			},
-
-		'DOM/FileReader':
-			function() {
-				if(typeof(FileReader) !== 'undefined' && typeof(URL) !== 'undefined' && typeof(URL.createObjectURL) !== 'undefined')
-					return true;
-			},
-
 		'DOM/LocalStorage':
 			function() {
 				if(typeof(localStorage) !== 'undefined')
 					return true;
 			},
-
 		'DOM/AddEventListener':
 			function() {
 				if(typeof(window.addEventListener) !== 'undefined')
 					return true;
 			},
-
 		'': function(){ return true; }
 	};
-
 	// check function
 	window.HTML5Compatibility = (function(){
 		// select unsupported features from a list (given as array or argument list)
@@ -76,8 +62,15 @@
 			}
 			return r;
 		};
+		// test all in the list
+		var supportAll = function() {
+			for(var k in checkers)
+				if(!checkers[k]()) return false;
+			return true;
+		};
 		return {
-			unsupported: unsupported
+			unsupported: unsupported,
+			supportAll: supportAll
 		};
 	})();
 })();
@@ -189,8 +182,10 @@ document.bindReady(function(){
 				div.style.top = curTop + 'px';
 				aniStart();
 			}
-			if(timeoutObj)
+			if(timeoutObj) {
 				clearTimeout(timeoutObj);
+				timeoutObj = false;
+			}
 			if(!timeout) return;
 			timeoutObj = setTimeout(hide, timeout);
 		};
@@ -199,8 +194,10 @@ document.bindReady(function(){
 				isShown = false;
 				aniStart();
 			}
-			if(timeoutObj)
+			if(timeoutObj) {
 				clearTimeout(timeoutObj);
+				timeoutObj = false;
+			}
 		};
 		return {
 			show: show,
