@@ -3,7 +3,7 @@
 // consts
 
 var FOR_MOBILE = true;
-var VERSION = '0.2.20130824';
+var VERSION = '0.2.20130904';
 var FPS = 32;
 var WIDTH = 960;
 var HEIGHT = 540;
@@ -400,7 +400,7 @@ game.showCover = function(){
 			// advanced loading
 			q.loadManifest([
 				{id:'maps', type:'text', src:'maps.data?v='+VERSION},
-				{id:'words', src:'words.json?v='+VERSION},
+				{id:'words', src:'words_'+game.settings.lang+'.json?v='+VERSION},
 				{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
 				{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
 				{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
@@ -421,7 +421,7 @@ game.showCover = function(){
 			xhr2.addEventListener('load', function(){
 				game.words = JSON.parse(xhr2.response);
 			}, false);
-			xhr2.open('GET', 'data/words.json', false);
+			xhr2.open('GET', 'data/words_'+game.settings.lang+'.json', false);
 			xhr2.overrideMimeType('text/plain; charset=utf8');
 			xhr2.send();
 			// load else

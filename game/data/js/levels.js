@@ -215,7 +215,7 @@ var startLevel = function(level){
 				game.started = false;
 				createjs.Sound.stop();
 				createjs.Ticker.removeAllEventListeners('tick');
-				game.mouseFuncRemove();
+				if(MOBILE) game.mouseFuncRemove();
 				window.removeEventListener('keydown', game.keyDownFunc);
 				window.removeEventListener('keyup', game.keyUpFunc);
 				game.showCover();
@@ -293,10 +293,18 @@ var startLevel = function(level){
 		var FADE_ALPHA_MIN = -1;
 		var FADE_ALPHA_STEP = 0.04;
 		var FADE_ALPHA_MAX_STD = 1.25;
-		var FADE_ALPHA_MAX_PER_CHAR = 0.15;
+		var FADE_ALPHA_MAX_PER_CHAR = 0.05;
 		storyContainer.alpha = -1;
 		var fadeAlphaMax = 1;
 		userCtrl.skip = false;
+		var storyTime = function(str){
+			// calc the time showing a sentence
+			var c = 0;
+			for(var i=0; i<str.length; i++)
+				if(str.charCodeAt(i) < 128) c++;
+				else c+=3;
+			return c*FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
+		};
 		var storyLoop = function(){
 			if(i >= story.length || userCtrl.skip) {
 				userCtrl.skip = false;
@@ -314,7 +322,7 @@ var startLevel = function(level){
 					storyContainer.removeAllChildren();
 					if(story[i].charAt(0) === '!') {
 						if(story[i].slice(0,5) === '!img:') {
-							fadeAlphaMax = 8 * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
+							fadeAlphaMax = 2.5;
 							var img = game.mainResource.getResult(story[i].slice(5));
 							storyContainer.addChild( new createjs.Bitmap(img).set({
 								x: (WIDTH-img.width)/2,
@@ -325,14 +333,14 @@ var startLevel = function(level){
 							storyText.color = '#c0c0c0';
 							storyText.text = story[i].slice(8);
 							storyText.cache(-480, -40, 960, 80);
-							fadeAlphaMax = story[i].length/2 * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
+							fadeAlphaMax = storyTime(story[i])/2;
 							storyContainer.addChild(storyText);
 						} else if(story[i].slice(0,5) === '!her:') {
 							storyText.font = '30px'+game.lang.font;
 							storyText.color = '#FBB7BF';
 							storyText.text = story[i].slice(5);
 							storyText.cache(-480, -40, 960, 80);
-							fadeAlphaMax = story[i].length * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
+							fadeAlphaMax = storyTime(story[i]);
 							storyContainer.addChild(storyText);
 						}
 					} else {
@@ -340,7 +348,7 @@ var startLevel = function(level){
 						storyText.color = '#c0c0c0';
 						storyText.text = story[i];
 						storyText.cache(-480, -20, 960, 40);
-						fadeAlphaMax = story[i].length * FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
+						fadeAlphaMax = storyTime(story[i]);
 						storyContainer.addChild(storyText);
 					}
 				}
@@ -940,7 +948,9 @@ game.start = function(){
 	var keySkip = function(){
 		userCtrl.skip = true;
 	};
-	var keyStartAction = function(){};
+	var keyStartAction = function(){
+		userCtrl.action = true;
+	};
 	var keyStartUp = function(){
 		userCtrl.up = true;
 	};
@@ -954,8 +964,7 @@ game.start = function(){
 		userCtrl.right = true;
 	};
 	var keyEndAction = function(){
-		if(!userCtrl.paused)
-			userCtrl.action = !userCtrl.action;
+		userCtrl.action = false;
 	};
 	var keyEndUp = function(){
 		userCtrl.up = false;

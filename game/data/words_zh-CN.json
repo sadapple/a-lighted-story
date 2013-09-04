@@ -12,8 +12,7 @@
 		"story": [
 			"再次醒来的时候，会变成怎样……",
 			"!img:tomorrow",
-			"!author:游戏制作\n最后的叶子(LastLeaf)",
-			"!author:英文翻译\n[待定]",
+			"!author:作者\n最后的叶子(LastLeaf) / Chossy",
 			"第一章 · 暗"
 		],
 		"hint": "当心那些明亮的光圈，他们会带来伤害"
@@ -24,7 +23,7 @@
 			"明天要做什么？我似乎忘记了。",
 			"只好仔细搜索脑袋里每一个布满蜘蛛网的角落。"
 		],
-		"hint": "空格键可切换快跑状态，快跑状态会随时间带来伤害，方向也会受少量影响"
+		"hint": "按住空格键可以快跑，快跑会随时间带来伤害，方向也会受少量影响"
 	},
 	"3": {
 		"chapter": 1,
@@ -164,9 +163,11 @@
 		"chapter": 4,
 		"story": [
 			"……",
-			"!author:本作品全部内容由 最后的叶子/LastLeaf 独立制作",
-			"!author:特别感谢以下个人或组织的协助与支持",
+			"!author:文本 / 画面 / 音乐 / 程序\n最后的叶子(LastLeaf)",
+			"!author:英文翻译\nChossy",
+			"!author:鸣谢",
 			"!author:The MistyMiracle Team\nhttp://www.mistymiracle.org",
+			"!author:—— 由 最后的叶子(LastLeaf) 主持制作 ——",
 			"……",
 			"!her:“梦，还没有醒吗？”",
 			"是她吗？",
