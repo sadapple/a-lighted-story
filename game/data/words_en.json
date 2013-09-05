@@ -3,7 +3,7 @@
 		"chapter": 0,
 		"story": [
 			"What to do tomorrow?",
-			"I seen to have forgotten."
+			"I seem to have forgotten."
 		],
 		"hint": "Use arrow keys or WASD to move around, or press [P] to pause into the menu."
 	},
@@ -23,7 +23,7 @@
 			"What to do tomorrow? I seem to have forgotten.",
 			"I have to hunt through every corner of my deserted mind."
 		],
-		"hint": "Hold [Space] to run faster. It brings harm over time and confuses your directions a bit."
+		"hint": "Press [Space] to switch to running mode. It brings harm over time and confuses your directions a bit."
 	},
 	"3": {
 		"chapter": 1,
@@ -52,14 +52,15 @@
 		"chapter": 1,
 		"story": [
 			"Is the indoor air too poor? Or the mist too heavy?",
-			"The only source of light is from a daylight lamp over there.",
+			"The only light comes from a daylight lamp over there.",
 			"Gloomy day. Everyone wearing thick..."
 		]
 	},
 	"7": {
 		"chapter": 2,
 		"story": [
-			"Suddenly, from some words someone just said, I captured my name.",
+			"I heard someone talking.",
+			"And from those words, I suddenly captured my name.",
 			"Seems like somebody's calling me.",
 			"But the voice is fuzzy and the words slur...",
 			"Let alone knowing where they come from.",
@@ -96,7 +97,7 @@
 	"11": {
 		"chapter": 2,
 		"story": [
-			"But I cannot see her face clearly. Her voice sounds vague, too.",
+			"But I cannot see her or hear her clearly.",
 			"Then, who is she?",
 			"Older than me, or younger?",
 			"Is she even a girl?"
@@ -130,7 +131,8 @@
 	"15": {
 		"chapter": 3,
 		"story": [
-			"Is there really a date? If not, what on earth am I doing tomorrow?",
+			"Is there really a date?",
+			"If not, what on earth am I doing tomorrow?",
 			"Movie, music, game... all in the same routine."
 		]
 	},
@@ -138,17 +140,17 @@
 		"chapter": 3,
 		"story": [
 			"It's a good choice to sleep -",
-			"- to get this world of disorder and indistinction out of sight,",
-			"and to draw myself and everything around me into full quiet..."
+			"- to get this obscure and chaotic world out of sight,",
+			"and to fully quiet myself and everything around me..."
 		]
 	},
 	"17": {
 		"chapter": 3,
 		"story": [
 			"And now?",
-			"The sky looks dreadfully pale.",
-			"Eroded by the paleness, the buildings have become extremely vulnerable.",
-			"They're like papered houses that could all collapse in an instant.",
+			"Erosive paleness is the sky.",
+			"And those eroded buildings are like crispy papered ones,",
+			"so vulnerable that could all collapse in an instant.",
 			"And there are those figures nearly vanishing into the air",
 			"numbly wandering along the accustomed path."
 		]

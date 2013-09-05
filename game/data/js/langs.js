@@ -1,6 +1,7 @@
 game.langs = {
 	'zh-CN': {
 		font: ' "文泉驿正黑","微软雅黑","黑体" ',
+		storyFontSize: 30,
 		str: [
 			'正在检测浏览器兼容性……',
 			'你的浏览器不支持本游戏，请使用其他浏览器访问，或下载离线版本',
@@ -33,6 +34,7 @@ game.langs = {
 	},
 	'en': {
 		font: ' sans ',
+		storyFontSize: 28,
 		str: [
 			'Detecting browser compatibilities...',
 			'Your browser does not support this game. Please use another browser to access.',
@@ -41,24 +43,24 @@ game.langs = {
 			'Base on Short Story of the Same Title',
 			'Loading...',
 			'Difficulty: Idiot',
-			'Difficulty: Newbie',
-			'Difficulty: Braver',
+			'Difficulty: Beginner',
+			'Difficulty: Warrior',
 			'Difficulty: Madman',
 			'ARE YOU SURE???',
-			'It suits you if you are new to this game...',
+			'Good for you if you are new to this game...',
 			'It\'s a challenge!',
-			'You can\'t get through unless you\'ve gone mad.',
+			'You\'ll never get through unless you\'re mad.',
 			'Music: On',
 			'Music: Off',
-			'Press [M] to turn on/off music, or [<] and [>] for volume.',
+			'Press [M] to turn on/off music; [<] and [>] to adjust the volume.',
 			'Continue',
 			'Start Game',
-			'You are at Level %1. Press [R] to clear progress and settings.',
+			'You are at Level %1. Press [R] to clear the present game progress.',
 			'Start a new game.',
-			'Clear progress and settings?',
+			'Clear the present game progress and settings?',
 			'Volume: ',
 			'Paused. Press [Esc] or [P] to continue...',
-			'WASD, arrow keys and [Enter] to select levels.',
+			'Press WASD or arrow keys and [Enter] to select levels.',
 			'Music is on. Volume: ',
 			'Music is off.'
 		]

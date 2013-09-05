@@ -106,7 +106,7 @@ game.showCover = function(){
 
 	// show license link
 	var licenseLink = game.createTextButton(game.str[3], 16, '#000', 270, 0, function(){
-		window.open('license.html', '_blank');
+		window.open('license_'+game.settings.lang+'.html', '_blank');
 	});
 	bottomBar.addChild(licenseLink);
 
@@ -203,6 +203,7 @@ game.showCover = function(){
 			game.lang = game.langs[newLang];
 			game.str = game.lang.str;
 			createjs.Ticker.removeAllEventListeners('tick');
+			window.removeEventListener('keyup', coverKeyFunc);
 			game.stage.removeAllChildren();
 			game.mainResource = null;
 			game.showCover();

@@ -9,8 +9,9 @@ var ME_R = 12;
 var LIGHT_R_MAX = 50*6;
 
 // game
-var ME_HP_MAX = [4000,2000,1200,800];
+var ME_HP_MAX = [4000,2000,1000,700];
 var LIGHTS_SPEED = [2,2.5,3,3.5];
+var P_STATE_CHANGE = [0.025, 0.03, 0.035, 0.04];
 var ME_MOVE_SPEED = 3;
 var ME_ACTION_SPEED = 6; // no larger than 6
 var ME_ACTION_DAMAGE = 4;
@@ -333,10 +334,10 @@ var startLevel = function(level){
 							storyText.color = '#c0c0c0';
 							storyText.text = story[i].slice(8);
 							storyText.cache(-480, -40, 960, 80);
-							fadeAlphaMax = storyTime(story[i])/2;
+							fadeAlphaMax = storyTime(story[i])*0.7;
 							storyContainer.addChild(storyText);
 						} else if(story[i].slice(0,5) === '!her:') {
-							storyText.font = '30px'+game.lang.font;
+							storyText.font = game.lang.storyFontSize+'px'+game.lang.font;
 							storyText.color = '#FBB7BF';
 							storyText.text = story[i].slice(5);
 							storyText.cache(-480, -40, 960, 80);
@@ -344,7 +345,7 @@ var startLevel = function(level){
 							storyContainer.addChild(storyText);
 						}
 					} else {
-						storyText.font = '30px'+game.lang.font;
+						storyText.font = game.lang.storyFontSize+'px'+game.lang.font;
 						storyText.color = '#c0c0c0';
 						storyText.text = story[i];
 						storyText.cache(-480, -20, 960, 40);
@@ -766,10 +767,9 @@ var startLevel = function(level){
 			for(var i=0; i<lights.length; i++) {
 				var a = lights[i];
 				// random size
-				var P_SIZE_STATE = 0.06;
 				var P_CHANGE = 0.5;
 				if(a.rmax > a.rmin) {
-					if(Math.random() < P_SIZE_STATE) {
+					if(Math.random() < P_STATE_CHANGE[game.settings.difficulty]*2) {
 						var p = Math.random();
 						if(p < P_CHANGE) {
 							var p1 = (a.r-a.rmin)/(a.rori-a.rmin);
@@ -791,9 +791,8 @@ var startLevel = function(level){
 				if(a.r >= a.rmax) a.r = a.rmax;
 				if(a.r <= a.rmin) a.r = a.rmin;
 				// random moving
-				var P_MOVE_STATE = 0.03;
 				if(a.area) {
-					if(Math.random() < P_MOVE_STATE) {
+					if(Math.random() < P_STATE_CHANGE[game.settings.difficulty]) {
 						var p = Math.random()*Math.PI*2;
 						var q = Math.random()*a.area;
 						var dx = Math.cos(p)*q + a.xori;
