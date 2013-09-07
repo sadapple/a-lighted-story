@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<window id="main_window" title="Tomorrow | LastLeaf" width="1000" height="640" sizemode="normal" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<browser id="main_page" type="content" flex="1"/>
+	<script type="application/javascript">
+		window.moveTo(
+			(window.screen.availWidth - 1000) / 2,
+			(window.screen.availHeight - 640) / 2
+		);
+		var mainPage = document.getElementById('main_page');
+		mainPage.setAttribute('src', 'resource:app/html/index.html');
+		setInterval(function(){
+			document.title = mainPage.contentTitle;
+		}, 1000);
+		var mainWindow = document.getElementById('main_window');
+		mainPage.ondblclick = function(){
+			window.fullScreen = !window.fullScreen;
+		};
+	</script>
+</window>

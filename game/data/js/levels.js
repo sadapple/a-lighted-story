@@ -1,3 +1,4 @@
+// Copyright 2013 LastLeaf, MIT LICENSE
 'use strict';
 
 // consts
@@ -331,24 +332,27 @@ var startLevel = function(level){
 							}) );
 						} else if(story[i].slice(0,8) === '!author:') {
 							storyText.font = '24px'+game.lang.font;
+							storyText.lineHeight = 36;
 							storyText.color = '#c0c0c0';
 							storyText.text = story[i].slice(8);
-							storyText.cache(-480, -40, 960, 80);
+							storyText.cache(-480, -60, 960, 120);
 							fadeAlphaMax = storyTime(story[i])*0.7;
 							storyContainer.addChild(storyText);
 						} else if(story[i].slice(0,5) === '!her:') {
 							storyText.font = game.lang.storyFontSize+'px'+game.lang.font;
+							storyText.lineHeight = game.lang.storyFontSize*1.5;
 							storyText.color = '#FBB7BF';
 							storyText.text = story[i].slice(5);
-							storyText.cache(-480, -40, 960, 80);
+							storyText.cache(-480, -30, 960, 60);
 							fadeAlphaMax = storyTime(story[i]);
 							storyContainer.addChild(storyText);
 						}
 					} else {
 						storyText.font = game.lang.storyFontSize+'px'+game.lang.font;
+						storyText.lineHeight = game.lang.storyFontSize*1.5;
 						storyText.color = '#c0c0c0';
 						storyText.text = story[i];
-						storyText.cache(-480, -20, 960, 40);
+						storyText.cache(-480, -30, 960, 60);
 						fadeAlphaMax = storyTime(story[i]);
 						storyContainer.addChild(storyText);
 					}
@@ -746,6 +750,7 @@ var startLevel = function(level){
 			if(map.showEnd) {
 				endPicture.alpha = 4;
 				var endAni = function(){
+					if(userCtrl.paused) return;
 					endPicture.alpha -= 0.02;
 					if(endPicture.alpha <= 0) {
 						createjs.Ticker.removeEventListener('tick', endAni);

@@ -1,3 +1,4 @@
+// Copyright 2013 LastLeaf, MIT LICENSE
 'use strict';
 
 // consts
@@ -100,25 +101,33 @@ game.showCover = function(){
 		lastleafLink.getChildAt(2).visible = false;
 	});
 	lastleafLink.addEventListener('click', function(){
-		window.open('http://lastleaf.mistymiracle.org/', '_blank');
+		if(location.protocol !== 'resource:')
+			window.open('http://lastleaf.mistymiracle.org/');
 	});
 	bottomBar.addChild(lastleafLink);
 
 	// show license link
 	var licenseLink = game.createTextButton(game.str[3], 16, '#000', 270, 0, function(){
-		window.open('license_'+game.settings.lang+'.html', '_blank');
+		if(location.protocol !== 'resource:')
+			window.open('license_'+game.settings.lang+'.html');
+		else
+			location.href = 'license_'+game.settings.lang+'.html?showback';
 	});
 	bottomBar.addChild(licenseLink);
 
 	// show about link
 	var aboutLink = game.createTextButton('v0.2', 16, '#000', 350, 0, function(){
-		window.open('change_logs.html', '_blank');
+		if(location.protocol !== 'resource:')
+			window.open('change_logs.html');
+		else
+			location.href = 'change_logs.html?showback';
 	});
 	bottomBar.addChild(aboutLink);
 
 	// show subtitle
 	var subtitle = game.createTextButton(game.str[4], 16, '#000', 0, 0, function(){
-		window.open('http://blog.programet.org/2010/04/%E6%98%8E%E5%A4%A9.html', '_blank');
+		if(location.protocol !== 'resource:')
+			window.open('http://blog.programet.org/2010/04/%E6%98%8E%E5%A4%A9.html');
 	});
 	bottomBar.addChild(subtitle);
 
@@ -192,7 +201,7 @@ game.showCover = function(){
 			document.title = 'Tomorrow | LastLeaf';
 		titleImg.image = q.getResult('tomorrow');
 		// get results
-		if(location.protocol !== 'file:') {
+		if(location.protocol !== 'file:' && location.protocol !== 'resource:') {
 			game.maps = q.getResult('maps').split('\n');
 			game.words = q.getResult('words');
 		}
@@ -397,7 +406,7 @@ game.showCover = function(){
 			progress.c().f('#888').r(0, 0, e.progress*800, 3);
 		});
 		q.addEventListener('complete', resourceLoaded);
-		if(location.protocol !== 'file:') {
+		if(location.protocol !== 'file:' && location.protocol !== 'resource:') {
 			// advanced loading
 			q.loadManifest([
 				{id:'maps', type:'text', src:'maps.data?v='+VERSION},
@@ -475,6 +484,7 @@ document.bindReady(function(){
 		alert(game.str[1]);
 		return;
 	}
+	hint.show('Passed!');
 
 	// window focus status
 	window.addEventListener('focus', function(){

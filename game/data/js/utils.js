@@ -1,3 +1,4 @@
+// Copyright 2013 LastLeaf, MIT LICENSE
 'use strict';
 
 // compatibility checker
@@ -5,11 +6,6 @@
 (function(){
 	// checkers
 	var checkers = {
-		'JavaScript/TypedArray':
-			function() {
-				if(typeof(Uint8Array) !== 'undefined' && typeof(Float64Array) !== 'undefined')
-					return true;
-			},
 		'JavaScript/JSON':
 			function() {
 				if(typeof(JSON) !== 'undefined')
@@ -66,6 +62,7 @@
 		var supportAll = function() {
 			for(var k in checkers)
 				if(!checkers[k]()) return false;
+				else hint.show(k);
 			return true;
 		};
 		return {
@@ -75,7 +72,7 @@
 	})();
 })();
 
-// document.ready partly from jQuery
+// document.ready partly from jQuery, jquery.org/license
 
 (function(){
 	if(document.bindReady) return;
@@ -215,4 +212,29 @@ document.bindReady(function(){
 	};
 	window.onresize = resizeWrapper;
 	resizeWrapper();
+});
+
+// full screen
+
+document.bindReady(function(){
+	var wrapper = document.getElementById('wrapper');
+	wrapper.ondblclick = function(){
+		if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement) {
+			if (document.documentElement.requestFullscreen) {
+				document.documentElement.requestFullscreen();
+			} else if (document.documentElement.mozRequestFullScreen) {
+				document.documentElement.mozRequestFullScreen();
+			} else if (document.documentElement.webkitRequestFullscreen) {
+				document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+			}
+		} else {
+			if (document.cancelFullScreen) {
+				document.cancelFullScreen();
+			} else if (document.mozCancelFullScreen) {
+				document.mozCancelFullScreen();
+			} else if (document.webkitCancelFullScreen) {
+				document.webkitCancelFullScreen();
+			}
+		}
+	};
 });

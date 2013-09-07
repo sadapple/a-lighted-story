@@ -1,10 +1,11 @@
+// Copyright 2013 LastLeaf, MIT LICENSE
 game.langs = {
 	'zh-CN': {
-		font: ' "文泉驿正黑","微软雅黑","黑体" ',
+		font: ' "文泉驿正黑","微软雅黑" ',
 		storyFontSize: 30,
 		str: [
 			'正在检测浏览器兼容性……',
-			'你的浏览器不支持本游戏，请使用其他浏览器访问，或下载离线版本',
+			'你的浏览器不支持本游戏，请使用其他浏览器访问',
 			'正在载入页面……',
 			'授权协议',
 			'改编自同名短篇小说',
@@ -26,14 +27,14 @@ game.langs = {
 			'开始新的游戏',
 			'清除游戏进度和游戏设置？',
 			'音量：',
-			'已暂停，按Esc或“P”键继续',
+			'已暂停，按“P”键继续',
 			'按方向键或WASD选择关卡，Enter跳转，“R”键返回封面',
 			'音乐已经打开，音量：',
 			'音乐已经关闭'
 		]
 	},
 	'en': {
-		font: ' sans ',
+		font: ' "sans-serif" ',
 		storyFontSize: 28,
 		str: [
 			'Detecting browser compatibilities...',
@@ -59,7 +60,7 @@ game.langs = {
 			'Start a new game.',
 			'Clear the present game progress and settings?',
 			'Volume: ',
-			'Paused. Press [Esc] or [P] to continue...',
+			'Paused. Press [P] to continue...',
 			'Press WASD or arrow keys and [Enter] to select levels.',
 			'Music is on. Volume: ',
 			'Music is off.'
