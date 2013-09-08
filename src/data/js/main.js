@@ -3,8 +3,6 @@
 
 // consts
 
-var FOR_MOBILE = true;
-var VERSION = '0.2.20130904';
 var FPS = 32;
 var WIDTH = 960;
 var HEIGHT = 540;
@@ -29,7 +27,6 @@ game.stage = null;
 game.curMusic = -1;
 game.focused = true;
 var initResource = null;
-game.highQualityMode = (!MOBILE);
 
 // global funcs
 
@@ -116,7 +113,7 @@ game.showCover = function(){
 	bottomBar.addChild(licenseLink);
 
 	// show about link
-	var aboutLink = game.createTextButton('v0.2', 16, '#000', 350, 0, function(){
+	var aboutLink = game.createTextButton('v1.0.0', 16, '#000', 350, 0, function(){
 		if(location.protocol !== 'resource:')
 			window.open('change_logs.html');
 		else

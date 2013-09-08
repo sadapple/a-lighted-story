@@ -19,12 +19,6 @@ var ME_ACTION_DAMAGE = 4;
 var ME_ACTION_DIF = Math.PI/8;
 var ME_DAMAGE_PER_R = 1;
 
-// debug
-var DEBUG = {
-	SKIP_TEXT: false,
-	SHOW_FPS: true
-};
-
 // parse a map
 
 var parseMap = function(level){
@@ -430,10 +424,6 @@ var startLevel = function(level){
 			game.settings.levelReached = level;
 		game.saveSettings();
 
-		// show keys for mobile
-		if(MOBILE)
-			document.getElementById('keys').style.display = 'block';
-
 		// init
 		var meHpMax = ME_HP_MAX[game.settings.difficulty];
 		var meHp = meHpMax;
@@ -459,7 +449,6 @@ var startLevel = function(level){
 
 		// end level
 		var levelEnd = function(endFunc){
-			if(MOBILE) document.getElementById('keys').style.display = 'none';
 			createjs.Ticker.removeAllEventListeners('tick');
 			var fadingRect = (new createjs.Shape()).set({alpha: 0});
 			fadingRect.graphics.f('black').r(0,0,WIDTH,HEIGHT);
@@ -1016,34 +1005,7 @@ game.start = function(){
 	};
 
 	// mouse event
-	if(MOBILE) {
-		document.getElementById('key_up').addEventListener('touchstart', keyStartUp, false);
-		document.getElementById('key_up').addEventListener('touchend', keyEndUp, false);
-		document.getElementById('key_down').addEventListener('touchstart', keyStartDown, false);
-		document.getElementById('key_down').addEventListener('touchend', keyEndDown, false);
-		document.getElementById('key_left').addEventListener('touchstart', keyStartLeft, false);
-		document.getElementById('key_left').addEventListener('touchend', keyEndLeft, false);
-		document.getElementById('key_right').addEventListener('touchstart', keyStartRight, false);
-		document.getElementById('key_right').addEventListener('touchend', keyEndRight, false);
-		document.getElementById('key_space').addEventListener('touchstart', keyStartAction, false);
-		document.getElementById('key_space').addEventListener('touchend', keyEndAction, false);
-		document.getElementById('key_pause').addEventListener('touchend', keyPause, false);
-		document.getElementById('key_enter').addEventListener('touchend', keySkip, false);
-		game.mouseFuncRemove = function(){
-			document.getElementById('key_up').removeEventListener('touchstart', keyStartUp);
-			document.getElementById('key_up').removeEventListener('touchend', keyEndUp);
-			document.getElementById('key_down').removeEventListener('touchstart', keyStartDown);
-			document.getElementById('key_down').removeEventListener('touchend', keyEndDown);
-			document.getElementById('key_left').removeEventListener('touchstart', keyStartLeft);
-			document.getElementById('key_left').removeEventListener('touchend', keyEndLeft);
-			document.getElementById('key_right').removeEventListener('touchstart', keyStartRight);
-			document.getElementById('key_right').removeEventListener('touchend', keyEndRight);
-			document.getElementById('key_space').removeEventListener('touchstart', keyStartAction);
-			document.getElementById('key_space').removeEventListener('touchend', keyEndAction);
-			document.getElementById('key_pause').removeEventListener('touchend', keyPause);
-			document.getElementById('key_enter').removeEventListener('touchend', keySkip);
-		};
-	}
+	if(MOBILE) game.mouseFuncRemove = function(){};
 
 	// basic listeners
 	game.keyDownFunc = function(e){
