@@ -1,7 +1,8 @@
 // Copyright 2013 LastLeaf, MIT LICENSE
 game.langs = {
 	'zh-CN': {
-		font: ' "文泉驿正黑","微软雅黑" ',
+		titleFont: ' "文泉驿正黑","微软雅黑" ',
+		font: ' "文泉驿正黑","微软雅黑","黑体" ',
 		storyFontSize: 30,
 		str: [
 			'正在检测浏览器兼容性……',
@@ -34,6 +35,7 @@ game.langs = {
 		]
 	},
 	'en': {
+		titleFont: ' "sans-serif" ',
 		font: ' "sans-serif" ',
 		storyFontSize: 28,
 		str: [

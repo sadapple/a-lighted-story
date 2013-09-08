@@ -36,8 +36,8 @@ game.saveSettings = function(){
 
 game.createTextButton = function(text, fontSize, background, centerX, centerY, clickFunc){
 	var button = new createjs.Container();
-	var t1 = new createjs.Text(text, fontSize+'px'+game.lang.font, '#888');
-	var t2 = new createjs.Text(text, fontSize+'px'+game.lang.font, '#00d2ff');
+	var t1 = new createjs.Text(text, fontSize+'px'+game.lang.titleFont, '#888');
+	var t2 = new createjs.Text(text, fontSize+'px'+game.lang.titleFont, '#00d2ff');
 	var bg = new createjs.Shape();
 	var width = t1.getMeasuredWidth() + 5;
 	var height = t1.getMeasuredHeight() + 5;
@@ -146,7 +146,7 @@ game.showCover = function(){
 	var progressShape = new createjs.Shape();
 	var progress = progressShape.graphics;
 	progress.f('#888').r(0, 0, 0, 3);
-	var progressText = new createjs.Text(game.str[5], '20px'+game.lang.font, '#888');
+	var progressText = new createjs.Text(game.str[5], '20px'+game.lang.titleFont, '#888');
 	progressText.textAlign = 'center';
 	progressText.textBaseline = 'middle';
 	progressText.x = 400;
