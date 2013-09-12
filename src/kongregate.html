@@ -1,0 +1,24 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Kongregate Game Shell</title>
+    <script type="text/javascript" src="http://www.kongregate.com/javascripts/kongregate_api.js"></script>
+    <style type="text/css">
+      html{border: none; overflow: hidden; background-color: #333; height: 100%;}
+      body{border: none; background-color: #333;margin:0; padding:0;}
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+      function onLoadCompleted(){
+        kongregate = kongregateAPI.getAPI();
+        var params = "kongregate_user_id=" + kongregate.services.getUserId() + 
+                   "&kongregate_game_auth_token=" + kongregate.services.getGameAuthToken() +
+                   "&random=" + (Math.random() * 1000000000);
+        kongregateAPI.embedFrame("kongregate_index.html?" + params);
+      }
+      kongregateAPI.loadAPI(onLoadCompleted);
+    </script>
+    <div id="contentdiv" style="top:0px; left:0px; width:960px; height:540px; borders:none;"></div>
+  </body>
+</html>

@@ -104,12 +104,18 @@ game.showCover = function(){
 	bottomBar.addChild(lastleafLink);
 
 	// show license link
-	var licenseLink = game.createTextButton(game.str[3], 16, '#000', 270, 0, function(){
-		if(location.protocol !== 'resource:')
-			window.open('license_'+game.settings.lang+'.html');
-		else
-			location.href = 'license_'+game.settings.lang+'.html?showback';
-	});
+	if(PLATFORM === 'kongregate') {
+		var licenseLink = game.createTextButton('KONGREGATE', 16, '#000', 260, 0, function(){
+			window.open('http://www.kongregate.com/');
+		});
+	} else {
+		var licenseLink = game.createTextButton(game.str[3], 16, '#000', 270, 0, function(){
+			if(location.protocol !== 'resource:')
+				window.open('license_'+game.settings.lang+'.html');
+			else
+				location.href = 'license_'+game.settings.lang+'.html?showback';
+		});
+	}
 	bottomBar.addChild(licenseLink);
 
 	// show about link
@@ -445,6 +451,32 @@ game.showCover = function(){
 
 };
 
+// wrapper resize
+
+var startResizeWrapper = function(){
+	var wrapper = document.getElementById('wrapper');
+	var mainCanvas = document.getElementById('main_canvas');
+	var resizeWrapper = function(){
+		wrapper.style.height = document.documentElement.clientHeight + 'px';
+		var r = 1;
+		if(document.documentElement.clientHeight < HEIGHT)
+			var r = document.documentElement.clientHeight / HEIGHT;
+		if(document.documentElement.clientWidth < WIDTH) {
+			var t = document.documentElement.clientWidth / WIDTH;
+			if(r > t) r = t;
+		}
+		if(r >= 1) {
+			mainCanvas.style.width = WIDTH + 'px';
+			mainCanvas.style.height = HEIGHT + 'px';
+		} else {
+			mainCanvas.style.width = Math.round(WIDTH*r) + 'px';
+			mainCanvas.style.height = Math.round(HEIGHT*r) + 'px';
+		}
+	};
+	window.onresize = resizeWrapper;
+	resizeWrapper();
+};
+
 // start function
 
 document.bindReady(function(){
@@ -477,11 +509,16 @@ document.bindReady(function(){
 	// check compatibility
 	hint.show(game.str[0]);
 	if(!HTML5Compatibility.supportAll()) {
-		hint.show(game.str[1]);
-		alert(game.str[1]);
+		hint.showLink(game.str[1], GAME_HOME_PAGE[game.settings.lang]);
 		return;
 	}
-	hint.show('Passed!');
+	try {
+		game.saveSettings();
+		var t = JSON.parse(localStorage[STORAGE_ID]);
+	} catch(e) {
+		hint.showLink(game.str[27], GAME_HOME_PAGE[game.settings.lang]);
+		return;
+	}
 
 	// window focus status
 	window.addEventListener('focus', function(){
@@ -493,6 +530,7 @@ document.bindReady(function(){
 
 	// init canvas
 	document.getElementById('wrapper').innerHTML = '<canvas id="main_canvas" width="'+WIDTH+'" height="'+HEIGHT+'"></canvas>';
+	startResizeWrapper();
 	game.stage = new createjs.Stage('main_canvas');
 	createjs.Sound.registerPlugins([createjs.HTMLAudioPlugin]);
 

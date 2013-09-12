@@ -85,6 +85,10 @@ var str = fs.readFileSync('game/index.html', 'utf8');
 str = str.replace(/\r?\n\t*\<script type\=\"text\/javascript\" src\=\"data\/js\/(utils|langs).js\"\>\<\/script\>/g, '');
 str = str.replace(/\<script type\=\"text\/javascript\" src\=\"data\/js\/main.js\"\>\<\/script\>/, '<script type="text/javascript" src="data/js/script.min.js"></script>');
 fs.writeFileSync('game/index.html', str);
+var str = fs.readFileSync('game/kongregate_index.html', 'utf8');
+str = str.replace(/\r?\n\t*\<script type\=\"text\/javascript\" src\=\"data\/js\/(utils|langs).js\"\>\<\/script\>/g, '');
+str = str.replace(/\<script type\=\"text\/javascript\" src\=\"data\/js\/main.js\"\>\<\/script\>/, '<script type="text/javascript" src="data/js/script.min.js"></script>');
+fs.writeFileSync('game/kongregate_index.html', str);
 console.log('Scripts combined to "game/data/js/script.min.js".');
 
 // generate win32 version
@@ -97,7 +101,7 @@ if(!fs.existsSync('win32/xulrunner')) {
 	if(!fs.existsSync('win32/html'))
 		fs.renameSync('game', 'win32/html');
 	process.chdir('win32');
-	exec('zip -9 -r ../'+WIN32_FILE_NAME+' * -x .gitignore profile/ html/data/audio/\*.mp3', function(error){
+	exec('zip -9 -r ../'+WIN32_FILE_NAME+' * -x .gitignore profile/ html/data/audio/\*.mp3 html/kongregate*', function(error){
 		process.chdir('..');
 		if(!fs.existsSync('game'))
 			fs.renameSync('win32/html', 'game');

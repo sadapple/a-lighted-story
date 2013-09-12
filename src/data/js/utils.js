@@ -25,11 +25,6 @@
 						return true;
 				} catch(e) {}
 			},
-		'DOM/LocalStorage':
-			function() {
-				if(typeof(localStorage) !== 'undefined')
-					return true;
-			},
 		'DOM/AddEventListener':
 			function() {
 				if(typeof(window.addEventListener) !== 'undefined')
@@ -62,7 +57,6 @@
 		var supportAll = function() {
 			for(var k in checkers)
 				if(!checkers[k]()) return false;
-				else hint.show(k);
 			return true;
 		};
 		return {
@@ -186,6 +180,10 @@ document.bindReady(function(){
 			if(!timeout) return;
 			timeoutObj = setTimeout(hide, timeout);
 		};
+		var showLink = function(text, href){
+			show(text);
+			div.innerHTML = '<a href="'+href+'" target="_blank">'+div.innerHTML+'</a>';
+		};
 		var hide = function(){
 			if(isShown) {
 				isShown = false;
@@ -198,20 +196,10 @@ document.bindReady(function(){
 		};
 		return {
 			show: show,
+			showLink: showLink,
 			hide: hide
 		};
 	})();
-});
-
-// wrapper resize
-
-document.bindReady(function(){
-	var wrapper = document.getElementById('wrapper');
-	var resizeWrapper = function(){
-		wrapper.style.height = document.documentElement.clientHeight + 'px';
-	};
-	window.onresize = resizeWrapper;
-	resizeWrapper();
 });
 
 // full screen

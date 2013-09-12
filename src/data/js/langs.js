@@ -6,7 +6,7 @@ game.langs = {
 		storyFontSize: 30,
 		str: [
 			'正在检测浏览器兼容性……',
-			'你的浏览器不支持本游戏，请使用其他浏览器访问',
+			'你的浏览器不支持本游戏，点这里查看解决方案',
 			'正在载入页面……',
 			'授权协议',
 			'改编自同名短篇小说',
@@ -31,7 +31,8 @@ game.langs = {
 			'已暂停，按“P”键继续',
 			'按方向键或WASD选择关卡，Enter跳转，“R”键返回封面',
 			'音乐已经打开，音量：',
-			'音乐已经关闭'
+			'音乐已经关闭',
+			'浏览器阻止了游戏的一部分功能，点这里尝试解决这个问题'
 		]
 	},
 	'en': {
@@ -40,7 +41,7 @@ game.langs = {
 		storyFontSize: 28,
 		str: [
 			'Detecting browser compatibilities...',
-			'Your browser does not support this game. Please use another browser to access.',
+			'Your browser does not support this game. Click here to see the solution.',
 			'Loading page content...',
 			'LICENSE',
 			'Base on Short Story of the Same Title',
@@ -65,7 +66,8 @@ game.langs = {
 			'Paused. Press [P] to continue...',
 			'Press WASD or arrow keys and [Enter] to select levels.',
 			'Music is on. Volume: ',
-			'Music is off.'
+			'Music is off.',
+			'Your browser prevented some features of this game. Click here to try fixing.'
 		]
 	}
 };

@@ -2,6 +2,14 @@ body {
 	margin: 0;
 	background: #000;
 	color: #fff;
+	overflow: hidden;
+}
+a, a:visited {
+	color: #00d2ff;
+	text-decoration: none;
+}
+a:hover, a:active {
+	text-decoration: underline;
 }
 
 #hint {

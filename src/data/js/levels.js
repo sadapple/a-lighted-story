@@ -10,7 +10,7 @@ var ME_R = 12;
 var LIGHT_R_MAX = 50*6;
 
 // game
-var ME_HP_MAX = [4000,2000,1000,700];
+var ME_HP_MAX = [5000,2000,1000,700];
 var LIGHTS_SPEED = [2,2.5,3,3.5];
 var P_STATE_CHANGE = [0.025, 0.03, 0.035, 0.04];
 var ME_MOVE_SPEED = 3;
