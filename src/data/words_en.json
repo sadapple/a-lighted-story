@@ -23,7 +23,7 @@
 			"What to do tomorrow? I seem to have forgotten.",
 			"I have to hunt through every corner of my deserted mind."
 		],
-		"hint": "Press [Space] to switch to running mode. It brings harm over time and confuses your directions a bit."
+		"hint": "Hold [Space] to switch to running mode. It brings harm over time and confuses your directions a bit."
 	},
 	"3": {
 		"chapter": 1,

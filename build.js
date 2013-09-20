@@ -85,10 +85,6 @@ var str = fs.readFileSync('game/index.html', 'utf8');
 str = str.replace(/\r?\n\t*\<script type\=\"text\/javascript\" src\=\"data\/js\/(utils|langs).js\"\>\<\/script\>/g, '');
 str = str.replace(/\<script type\=\"text\/javascript\" src\=\"data\/js\/main.js\"\>\<\/script\>/, '<script type="text/javascript" src="data/js/script.min.js"></script>');
 fs.writeFileSync('game/index.html', str);
-var str = fs.readFileSync('game/kongregate_index.html', 'utf8');
-str = str.replace(/\r?\n\t*\<script type\=\"text\/javascript\" src\=\"data\/js\/(utils|langs).js\"\>\<\/script\>/g, '');
-str = str.replace(/\<script type\=\"text\/javascript\" src\=\"data\/js\/main.js\"\>\<\/script\>/, '<script type="text/javascript" src="data/js/script.min.js"></script>');
-fs.writeFileSync('game/kongregate_index.html', str);
 console.log('Scripts combined to "game/data/js/script.min.js".');
 
 // generate win32 version

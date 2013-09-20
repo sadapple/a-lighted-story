@@ -516,7 +516,7 @@ document.bindReady(function(){
 		game.saveSettings();
 		var t = JSON.parse(localStorage[STORAGE_ID]);
 	} catch(e) {
-		hint.showLink(game.str[27], GAME_HOME_PAGE[game.settings.lang]);
+		hint.showLink(game.str[27], location.href);
 		return;
 	}
 
