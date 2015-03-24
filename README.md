@@ -13,7 +13,7 @@ The [KONGREGATE](http://www.kongregate.com/) version of this game has already be
 
 # LICENSE #
 
-The content of this game is under [Creative Commons Attribution-NonCommercial-NoDerivs 3.0 License](http://creativecommons.org/licenses/by-nc-nd/3.0/). The software of this game is under [MIT LICENSE](http://www.opensource.org/licenses/mit-license.html).
+The content of this game is under [Creative Commons Attribution-ShareAlike 4.0 International](http://creativecommons.org/licenses/by-sa/4.0/). The software of this game is under [MIT LICENSE](http://www.opensource.org/licenses/mit-license.html).
 
 If you want commercial use or modification of this game, please contact me.
 
