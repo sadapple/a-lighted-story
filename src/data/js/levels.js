@@ -28,19 +28,12 @@ var parseMap = function(level){
 	map.startY = a[2]*6;
 	var endX = a[3].split(' ');
 	var endY = a[4].split(' ');
-	var i = Math.floor( Math.random() * endX.length );
-	map.endX = endX[i]*6;
-	map.endY = endY[i]*6;
-	// special controls
-	map.showEnd = false;
-	if(endY[endX.length] === 'S' || endY[endX.length] === 'SW')
-		map.showEnd = true;
-	map.alwaysShowEnd = false;
-	if(endY[endX.length] === 'A')
-		map.alwaysShowEnd = true;
-	map.white = false;
-	if(endY[endX.length] === 'W' || endY[endX.length] === 'SW')
-		map.white = true;
+	for(var i=0; i<endX.length; i++) {
+		endX[i] *= 6;
+		endY[i] *= 6;
+	}
+	map.endX = endX;
+	map.endY = endY;
 	// parse lights
 	map.lights = [];
 	var s = a[5].split(' ');
@@ -72,6 +65,7 @@ var parseMap = function(level){
 		});
 	}
 	// draw map
+	var blur = Number(a[6]);
 	var s = a[0];
 	var block = new Array(90*160);
 	var picture = new createjs.Shape();
@@ -86,13 +80,42 @@ var parseMap = function(level){
 				g.r((p%160)*6, Math.floor(p/160)*6, 6, 6);
 		}
 	}
-	picture.filters = [ new createjs.BoxBlurFilter(12,12,1) ];
+	picture.filters = [ new createjs.BoxBlurFilter(6*blur+2,6*blur+2,1) ];
 	if(!map.white)
 		picture.cache(0,0,WIDTH,HEIGHT);
 	else
 		picture.cache(24,24,WIDTH-48,HEIGHT-48)
 	map.block = block;
 	map.picture = picture;
+	// calculate wall
+	var wall = new Array(90*160);
+	for(var i=0; i<90; i++)
+		for(var j=0; j<160; j++) {
+			if(!block[i*160+j])
+				wall[i*160+j] = 0; // center can reach
+			else {
+				wall[i*160+j] = 2; // nothing can reach
+				if(blur === 1) {
+					for(var di=-1; di<=1; di++)
+						for(var dj=-1; dj<=1; dj++) {
+							if(i+di<0 || i+di>=90 || j+dj<0 || j+dj>=160) continue;
+							if(block[(i+di)*160+(j+dj)]) continue;
+							wall[i*160+j] = 1; // border can reach
+							break;
+						}
+				} else if(blur === 2) {
+					for(var di=-2; di<=2; di++)
+						for(var dj=-2; dj<=2; dj++) {
+							if(i+di<0 || i+di>=90 || j+dj<0 || j+dj>=160) continue;
+							if(block[(i+di)*160+(j+dj)]) continue;
+							wall[i*160+j] = 1; // border can reach
+							break;
+						}
+				}
+			}
+		}
+	map.blur = blur;
+	map.wall = wall;
 	return map;
 };
 
@@ -274,7 +297,7 @@ var startLevel = function(level){
 	// story loop
 	var storyLoopStart = function(){
 		// show level words
-		var story = game.words[level].story;
+		var story = [game.words[level].story];
 		var storyText = new createjs.Text();
 		storyText.textAlign = 'center';
 		storyText.textBaseline = 'middle';
@@ -624,6 +647,49 @@ var startLevel = function(level){
 			userCtrl.reset = false;
 		});
 
+		// reach an end point
+		var levelEndIndex = 0;
+		var levelEndpoint = function(){
+			var textInfo = game.words[level].ends[levelEndIndex++];
+			if(textInfo) {
+				// show text in map
+				var text = new createjs.Text();
+				text.font = '24px'+game.lang.font;
+				text.lineHeight = 36;
+				text.color = '#c0c0c0';
+				text.text = textInfo[0];
+				text.textAlign = textInfo[3] || 'center';
+				text.textBaseline = 'middle';
+				text.x = textInfo[1] || 480;
+				text.y = textInfo[2] || 270;
+				text.filters = [ new createjs.BoxBlurFilter(0.5,0.5,1) ];
+				if(textInfo[3] === 'left')
+					text.cache(0, -20, 960, 40);
+				else if(textInfo[3] === 'center')
+					text.cache(-480, -20, 960, 40);
+				else if(textInfo[3] === 'right')
+					text.cache(-960, -20, 960, 40);
+				mapTextLayer.removeAllChildren();
+				mapTextLayer.addChild(text);
+				text.alpha = 0;
+				var fadeInStep = function(){
+					text.alpha += 0.03;
+					if(text.alpha >= 1) createjs.Ticker.removeEventListener('tick', fadeInStep);
+				};
+				createjs.Ticker.addEventListener('tick', fadeInStep);
+				if(!map.endX.length) {
+					// end level in several seconds
+					var waitTicks = 128;
+					createjs.Ticker.addEventListener('tick', function(){
+						waitTicks--;
+						if(!waitTicks) doneLevel();
+					});
+				}
+			} else if(!map.endX.length) {
+				doneLevel();
+			}
+		};
+
 		// calc hp
 		createjs.Ticker.addEventListener('tick', function(){
 			if(userCtrl.paused) return;
@@ -642,10 +708,13 @@ var startLevel = function(level){
 			}
 			if(meHp <= 0) resetLevel();
 			// check end
-			var dx = map.endX - mePicture.x;
-			var dy = map.endY - mePicture.y;
-			if( dx*dx + dy*dy <= 4*ME_R*ME_R )
-				doneLevel();
+			var dx = map.endX[0] - mePicture.x;
+			var dy = map.endY[0] - mePicture.y;
+			if( dx*dx + dy*dy <= 4*ME_R*ME_R ) {
+				map.endX.shift();
+				map.endY.shift();
+				levelEndpoint();
+			}
 		});
 
 		// handling moves
@@ -696,20 +765,29 @@ var startLevel = function(level){
 				var py = mePicture.y + y;
 				var checkWall = function(x, y){
 					if(x < ME_R || y < ME_R || x >= WIDTH-ME_R || y >= HEIGHT-ME_R) return true;
-					return map.block[ Math.floor(x/6) + Math.floor(y/6)*160 ];
+					if( map.wall[ Math.floor((x-12)/6) + Math.floor(y/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x-8.4852816)/6) + Math.floor((y-8.4852816)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor(x/6) + Math.floor((y-12)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x+8.4852816)/6) + Math.floor((y-8.4852816)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x+12)/6) + Math.floor(y/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x+8.4852816)/6) + Math.floor((y+8.4852816)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor(x/6) + Math.floor((y+12)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x-8.4852816)/6) + Math.floor((y+8.4852816)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor(x/6) + Math.floor(y/6)*160 ] ) return true;
+					return false;
 				};
 				if(checkWall(px, py)) {
 					if(!checkWall(mePicture.x + x, mePicture.y)) {
-						if(y > 0) py = (Math.floor(py/6))*6 - 1e-3;
-						else if(y < 0) py = (Math.floor(py/6)+1)*6;
+						if(y > 0) py = (Math.floor(py/3))*3 - 1e-3;
+						else if(y < 0) py = (Math.floor(py/3)+1)*3;
 					} else if(!checkWall(mePicture.x, mePicture.y + y)) {
-						if(x > 0) px = (Math.floor(px/6))*6 - 1e-3;
-						else if(x < 0) px = (Math.floor(px/6)+1)*6;
+						if(x > 0) px = (Math.floor(px/3))*3 - 1e-3;
+						else if(x < 0) px = (Math.floor(px/3)+1)*3;
 					} else {
-						if(x > 0) px = (Math.floor(px/6))*6 - 1e-3;
-						else if(x < 0) px = (Math.floor(px/6)+1)*6;
-						if(y > 0) py = (Math.floor(py/6))*6 - 1e-3;
-						else if(y < 0) py = (Math.floor(py/6)+1)*6;
+						if(x > 0) px = (Math.floor(px/3))*3 - 1e-3;
+						else if(x < 0) px = (Math.floor(px/3)+1)*3;
+						if(y > 0) py = (Math.floor(py/3))*3 - 1e-3;
+						else if(y < 0) py = (Math.floor(py/3)+1)*3;
 					}
 				}
 				mePicture.x = px;
@@ -718,37 +796,15 @@ var startLevel = function(level){
 		});
 
 		// show me and map
-		if(map.white) {
-			game.stage.addChild(map.picture);
-			game.stage.addChild(whiteMap);
-		}
 		game.stage.addChild(mePicture);
 		mePicture.x = map.startX;
 		mePicture.y = map.startY;
 		mePicture.gotoAndPlay('normal');
-		if(!map.white)
-			game.stage.addChild(map.picture);
+		game.stage.addChild(map.picture);
 
-		// show end if needed
-		if(map.showEnd || map.alwaysShowEnd) {
-			var endPicture = generatePerson('#FBB7BF');
-			game.stage.addChild(endPicture);
-			endPicture.x = map.endX;
-			endPicture.y = map.endY;
-				endPicture.gotoAndPlay('normal');
-			if(map.showEnd) {
-				endPicture.alpha = 4;
-				var endAni = function(){
-					if(userCtrl.paused) return;
-					endPicture.alpha -= 0.02;
-					if(endPicture.alpha <= 0) {
-						createjs.Ticker.removeEventListener('tick', endAni);
-						game.stage.removeChild(endPicture);
-					}
-				};
-				createjs.Ticker.addEventListener('tick', endAni);
-			}
-		}
+		// add a layer for images above map
+		var mapImageLayer = new createjs.Container().set({x:0,y:0});
+		game.stage.addChild(mapImageLayer);
 
 		// update lights
 		var lightsLayer = new createjs.Container().set({x:0,y:0});
@@ -808,6 +864,10 @@ var startLevel = function(level){
 				lightsLayer.addChild(generateLight(Math.round(a.r), a.x, a.y));
 			}
 		});
+
+		// add a layer for texts above map
+		var mapTextLayer = new createjs.Container().set({x:0,y:0});
+		game.stage.addChild(mapTextLayer);
 
 		// show clouds
 		if(!MOBILE)

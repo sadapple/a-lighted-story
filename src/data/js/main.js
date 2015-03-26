@@ -87,8 +87,10 @@ game.showCover = function(){
 	);
 	lastleafLink.getChildAt(1).alpha = 0.8;
 	lastleafLink.getChildAt(2).visible = false;
-	lastleafLink.x = -370;
-	lastleafLink.y = -26;
+	lastleafLink.x = 280;
+	lastleafLink.y = -15;
+	lastleafLink.scaleX = 0.6;
+	lastleafLink.scaleY = 0.6;
 	lastleafLink.addEventListener('mouseover', function(){
 		lastleafLink.getChildAt(2).visible = true;
 		lastleafLink.getChildAt(1).visible = false;
@@ -99,27 +101,21 @@ game.showCover = function(){
 	});
 	lastleafLink.addEventListener('click', function(){
 		if(location.protocol !== 'resource:')
-			window.open('http://lastleaf.mistymiracle.org/');
+			window.open('http://lastleaf.me/');
 	});
 	bottomBar.addChild(lastleafLink);
 
 	// show license link
-	if(PLATFORM === 'kongregate') {
-		var licenseLink = game.createTextButton('KONGREGATE', 16, '#000', 260, 0, function(){
-			window.open('http://www.kongregate.com/');
-		});
-	} else {
-		var licenseLink = game.createTextButton(game.str[3], 16, '#000', 270, 0, function(){
-			if(location.protocol !== 'resource:')
-				window.open('license_'+game.settings.lang+'.html');
-			else
-				location.href = 'license_'+game.settings.lang+'.html?showback';
-		});
-	}
+	var licenseLink = game.createTextButton(game.str[3], 18, '#000', -320, 0, function(){
+		if(location.protocol !== 'resource:')
+			window.open('license_'+game.settings.lang+'.html');
+		else
+			location.href = 'license_'+game.settings.lang+'.html?showback';
+	});
 	bottomBar.addChild(licenseLink);
 
 	// show about link
-	var aboutLink = game.createTextButton('v1.0.0', 16, '#000', 350, 0, function(){
+	var aboutLink = game.createTextButton('CREDIT', 18, '#000', -200, 0, function(){
 		if(location.protocol !== 'resource:')
 			window.open('change_logs.html');
 		else
@@ -128,9 +124,9 @@ game.showCover = function(){
 	bottomBar.addChild(aboutLink);
 
 	// show subtitle
-	var subtitle = game.createTextButton(game.str[4], 16, '#000', 0, 0, function(){
+	var subtitle = game.createTextButton(game.str[4], 18, '#000', 160, 0, function(){
 		if(location.protocol !== 'resource:')
-			window.open('http://blog.programet.org/2010/04/%E6%98%8E%E5%A4%A9.html');
+			window.open('http://github.com/LastLeaf/Tomorrow');
 	});
 	bottomBar.addChild(subtitle);
 
