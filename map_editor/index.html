@@ -20,14 +20,19 @@
 		</div>
 		<div id="settings">
 			<div>
+				<span>Blur <select id="blur">
+					<option value="0" selected>None</option>
+					<option value="1">Slight</option>
+					<option value="2">Normal</option>
+				</select></span>
 				<span id="extra"><input type="checkbox" id="show_extra" checked><label for="show_extra"> 显示特殊点</label></span>
 				<span id="start">起点
 					<input type="number" id="start_x" min="2" max="157" value="2">
 					<input type="number" id="start_y" min="2" max="87" value="2">
 				</span>
 				<span id="end">终点
-					<input type="number" id="end_x" min="2" max="158" value="158">
-					<input type="number" id="end_y" min="2" max="88" value="88">
+					<input type="text" id="end_x" min="2" max="158" value="158">
+					<input type="text" id="end_y" min="2" max="88" value="88">
 				</span>
 				<span id="current">当前
 					<input type="number" id="current_x" min="0" max="159" value="0" disabled>
