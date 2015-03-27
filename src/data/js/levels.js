@@ -765,29 +765,25 @@ var startLevel = function(level){
 				var py = mePicture.y + y;
 				var checkWall = function(x, y){
 					if(x < ME_R || y < ME_R || x >= WIDTH-ME_R || y >= HEIGHT-ME_R) return true;
-					if( map.wall[ Math.floor((x-12)/6) + Math.floor(y/6)*160 ] > 1 ) return true;
-					if( map.wall[ Math.floor((x-8.4852816)/6) + Math.floor((y-8.4852816)/6)*160 ] > 1 ) return true;
-					if( map.wall[ Math.floor(x/6) + Math.floor((y-12)/6)*160 ] > 1 ) return true;
-					if( map.wall[ Math.floor((x+8.4852816)/6) + Math.floor((y-8.4852816)/6)*160 ] > 1 ) return true;
-					if( map.wall[ Math.floor((x+12)/6) + Math.floor(y/6)*160 ] > 1 ) return true;
-					if( map.wall[ Math.floor((x+8.4852816)/6) + Math.floor((y+8.4852816)/6)*160 ] > 1 ) return true;
-					if( map.wall[ Math.floor(x/6) + Math.floor((y+12)/6)*160 ] > 1 ) return true;
-					if( map.wall[ Math.floor((x-8.4852816)/6) + Math.floor((y+8.4852816)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x-10)/6) + Math.floor((y-10)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x+10)/6) + Math.floor((y-10)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x+10)/6) + Math.floor((y+10)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x-10)/6) + Math.floor((y+10)/6)*160 ] > 1 ) return true;
 					if( map.wall[ Math.floor(x/6) + Math.floor(y/6)*160 ] ) return true;
 					return false;
 				};
 				if(checkWall(px, py)) {
 					if(!checkWall(mePicture.x + x, mePicture.y)) {
-						if(y > 0) py = (Math.floor(py/3))*3 - 1e-3;
-						else if(y < 0) py = (Math.floor(py/3)+1)*3;
+						if(y > 0) py = (Math.floor(py/6))*6 - 1e-3;
+						else if(y < 0) py = (Math.floor(py/6)+1)*6;
 					} else if(!checkWall(mePicture.x, mePicture.y + y)) {
-						if(x > 0) px = (Math.floor(px/3))*3 - 1e-3;
-						else if(x < 0) px = (Math.floor(px/3)+1)*3;
+						if(x > 0) px = (Math.floor(px/6))*6 - 1e-3;
+						else if(x < 0) px = (Math.floor(px/6)+1)*6;
 					} else {
-						if(x > 0) px = (Math.floor(px/3))*3 - 1e-3;
-						else if(x < 0) px = (Math.floor(px/3)+1)*3;
-						if(y > 0) py = (Math.floor(py/3))*3 - 1e-3;
-						else if(y < 0) py = (Math.floor(py/3)+1)*3;
+						if(x > 0) px = (Math.floor(px/6))*6 - 1e-3;
+						else if(x < 0) px = (Math.floor(px/6)+1)*6;
+						if(y > 0) py = (Math.floor(py/6))*6 - 1e-3;
+						else if(y < 0) py = (Math.floor(py/6)+1)*6;
 					}
 				}
 				mePicture.x = px;
