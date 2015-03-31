@@ -14,7 +14,7 @@ var ME_HP_MAX = [5000,2000,1000,700];
 var LIGHTS_SPEED = [2,2.5,3,3.5];
 var P_STATE_CHANGE = [0.025, 0.03, 0.035, 0.04];
 var ME_MOVE_SPEED = 3;
-var ME_ACTION_SPEED = 5; // no larger than 5
+var ME_ACTION_SPEED = 6; // no larger than 6
 var ME_ACTION_DAMAGE = 4;
 var ME_ACTION_DIF = Math.PI/8;
 var ME_DAMAGE_PER_R = 1;
@@ -765,10 +765,10 @@ var startLevel = function(level){
 				var py = mePicture.y + y;
 				var checkWall = function(x, y){
 					if(x < ME_R || y < ME_R || x >= WIDTH-ME_R || y >= HEIGHT-ME_R) return true;
-					if( map.wall[ Math.floor((x-10)/6) + Math.floor((y-10)/6)*160 ] > 1 ) return true;
-					if( map.wall[ Math.floor((x+10)/6) + Math.floor((y-10)/6)*160 ] > 1 ) return true;
-					if( map.wall[ Math.floor((x+10)/6) + Math.floor((y+10)/6)*160 ] > 1 ) return true;
-					if( map.wall[ Math.floor((x-10)/6) + Math.floor((y+10)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x-12)/6) + Math.floor((y-12)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x+12)/6) + Math.floor((y-12)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x+12)/6) + Math.floor((y+12)/6)*160 ] > 1 ) return true;
+					if( map.wall[ Math.floor((x-12)/6) + Math.floor((y+12)/6)*160 ] > 1 ) return true;
 					if( map.wall[ Math.floor(x/6) + Math.floor(y/6)*160 ] ) return true;
 					return false;
 				};
