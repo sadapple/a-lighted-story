@@ -1,0 +1,10 @@
+[
+	{
+		"run": true,
+		"slow": true,
+		"canStop": false,
+		"shadow": true,
+		"fog": true,
+		"flash": true
+	}
+]
