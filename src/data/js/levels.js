@@ -15,6 +15,13 @@ var LIGHTS_SPEED = [2,2.5,3,3.5];
 var P_STATE_CHANGE = [0.025, 0.03, 0.035, 0.04];
 var ME_MOVE_SPEED = 3;
 var ME_ACTION_SPEED = 6; // no larger than 6
+var ME_SLOW_RATE = 0.5;  // slow_speed = slow_rate * normal_speed
+var ME_S_R = 8;          // radius of my shadow
+var ME_S_DES_PER_FRAME = 0.01;
+var ME_S_START_ALPHA = 0.4;   // alpha when the shadow appear
+var FOG_R = 60;
+var FLASH_ALPHA_MIN = 0.0;
+var FLASH_ALPHA_MAX = 0.9;
 var ME_ACTION_DAMAGE = 4;
 var ME_ACTION_DIF = Math.PI/8;
 var ME_DAMAGE_PER_R = 1;
@@ -719,6 +726,7 @@ var startLevel = function(level){
 
 		// handling moves
 		var actionAni = false;
+		var shadowList = [];
 		createjs.Ticker.addEventListener('tick', function(){
 			if(userCtrl.paused) return;
 			// move
@@ -728,8 +736,8 @@ var startLevel = function(level){
 			if(userCtrl.down) y++;
 			if(userCtrl.left) x--;
 			if(userCtrl.right) x++;
-			if(userCtrl.action && level > 1) {
-				// allow run from level 2
+			if(userCtrl.action && game.ctrl[level].run) {
+				// allow run when `ctrl.run` is true
 				if(!actionAni) {
 					actionAni = true;
 					mePicture.gotoAndPlay('fast');
@@ -758,6 +766,10 @@ var startLevel = function(level){
 					x /= 1.4142136;
 					y /= 1.4142136;
 				}
+			}
+			if (game.ctrl[level].slow) {
+				x *= ME_SLOW_RATE;
+				y *= ME_SLOW_RATE;
 			}
 			// check walls
 			if(x || y) {
@@ -790,8 +802,33 @@ var startLevel = function(level){
 						else if(y < 0) py = (Math.floor(py/3)+1)*3;
 					}
 				}
-				mePicture.x = px;
-				mePicture.y = py;
+				if (px - mePicture.x || py - mePicture.y) {
+					mePicture.x = px;
+					mePicture.y = py;
+					// add person's shadow
+					if (game.ctrl[level].shadow) {
+						var shadow = new createjs.Shape();
+						shadow.graphics.f('#808080').dc(mePicture.x, mePicture.y, ME_S_R);
+						shadow.alpha = ME_S_START_ALPHA;
+						shadowList.push(shadow);
+						meShadow.addChild(shadow);
+					}
+					if (game.ctrl[level].fog) {
+						fog.x = px;
+						fog.y = py;
+					}
+				}
+			}
+			// check the shadow
+			if (game.ctrl[level].shadow) {
+				for (var si = 0, sl = shadowList.length; si < sl; si++) {
+					shadowList[si].alpha -= ME_S_DES_PER_FRAME;
+				}
+			}
+			var oldestShadow = shadowList[0];
+			if (oldestShadow && oldestShadow.alpha <= 0) {
+				meShadow.removeChild(oldestShadow);
+				shadowList.shift();
 			}
 		});
 
@@ -802,9 +839,43 @@ var startLevel = function(level){
 		mePicture.gotoAndPlay('normal');
 		game.stage.addChild(map.picture);
 
+		if (game.ctrl[level].shadow) {
+			var meShadow = new createjs.Container();
+			game.stage.addChild(meShadow);
+		}
+
 		// add a layer for images above map
 		var mapImageLayer = new createjs.Container().set({x:0,y:0});
 		game.stage.addChild(mapImageLayer);
+
+		// add a fog layer
+		if (game.ctrl[level].fog) {
+			var fog = new createjs.Shape();
+			fog.graphics.f('white').dc(0, 0, FOG_R);
+			fog.cache(-FOG_R, -FOG_R, 2*FOG_R, 2*FOG_R);
+			fog.compositeOperation = 'destination-in';
+			fog.x = mePicture.x;
+			fog.y = mePicture.y;
+			game.stage.addChild(fog);
+		}
+
+		// add flash layer
+		if (game.ctrl[level].flash) {
+			var flash = new createjs.Shape().set({alpha: FLASH_ALPHA_MAX});;
+			flash.graphics.f('black').dr(0, 0, WIDTH, HEIGHT);
+			game.stage.addChild(flash);
+			var sp = -0.01;
+			createjs.Ticker.addEventListener('tick', function() {
+				if(userCtrl.paused) return;
+				flash.alpha += sp;
+				if (flash.alpha >= FLASH_ALPHA_MAX) {
+					sp = -0.01 * (0.5 + Math.random());
+				}
+				if (flash.alpha <= FLASH_ALPHA_MIN) {
+					sp  = 0.01 * (0.5 + Math.random());
+				}
+			});
+		}
 
 		// update lights
 		var lightsLayer = new createjs.Container().set({x:0,y:0});
