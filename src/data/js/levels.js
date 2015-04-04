@@ -301,6 +301,8 @@ var startLevel = function(level){
 		}, 1000);
 	}
 
+	var controlConfig = game.ctrl[level];
+
 	// story loop
 	var storyLoopStart = function(){
 		// show level words
@@ -736,8 +738,14 @@ var startLevel = function(level){
 			if(userCtrl.down) y++;
 			if(userCtrl.left) x--;
 			if(userCtrl.right) x++;
-			if(userCtrl.action && game.ctrl[level].run) {
-				// allow run when `ctrl.run` is true
+			if (controlConfig.onlyRight && x < 0) {
+				x = 0;
+			}
+			if (controlConfig.noStop && !x && !y) {
+				x = 1;
+			}
+			if(userCtrl.action && !controlConfig.noRun) {
+				// allow run when `ctrl.noRun` is false
 				if(!actionAni) {
 					actionAni = true;
 					mePicture.gotoAndPlay('fast');
@@ -767,7 +775,7 @@ var startLevel = function(level){
 					y /= 1.4142136;
 				}
 			}
-			if (game.ctrl[level].slow) {
+			if (controlConfig.slow) {
 				x *= ME_SLOW_RATE;
 				y *= ME_SLOW_RATE;
 			}
@@ -806,21 +814,21 @@ var startLevel = function(level){
 					mePicture.x = px;
 					mePicture.y = py;
 					// add person's shadow
-					if (game.ctrl[level].shadow) {
+					if (controlConfig.shadow) {
 						var shadow = new createjs.Shape();
 						shadow.graphics.f('#808080').dc(mePicture.x, mePicture.y, ME_S_R);
 						shadow.alpha = ME_S_START_ALPHA;
 						shadowList.push(shadow);
 						meShadow.addChild(shadow);
 					}
-					if (game.ctrl[level].fog) {
+					if (controlConfig.fog) {
 						fog.x = px;
 						fog.y = py;
 					}
 				}
 			}
 			// check the shadow
-			if (game.ctrl[level].shadow) {
+			if (controlConfig.shadow) {
 				for (var si = 0, sl = shadowList.length; si < sl; si++) {
 					shadowList[si].alpha -= ME_S_DES_PER_FRAME;
 				}
@@ -839,7 +847,7 @@ var startLevel = function(level){
 		mePicture.gotoAndPlay('normal');
 		game.stage.addChild(map.picture);
 
-		if (game.ctrl[level].shadow) {
+		if (controlConfig.shadow) {
 			var meShadow = new createjs.Container();
 			game.stage.addChild(meShadow);
 		}
@@ -849,7 +857,7 @@ var startLevel = function(level){
 		game.stage.addChild(mapImageLayer);
 
 		// add a fog layer
-		if (game.ctrl[level].fog) {
+		if (controlConfig.fog) {
 			var fog = new createjs.Shape();
 			fog.graphics.f('white').dc(0, 0, FOG_R);
 			fog.cache(-FOG_R, -FOG_R, 2*FOG_R, 2*FOG_R);
@@ -860,7 +868,7 @@ var startLevel = function(level){
 		}
 
 		// add flash layer
-		if (game.ctrl[level].flash) {
+		if (controlConfig.flash) {
 			var flash = new createjs.Shape().set({alpha: FLASH_ALPHA_MAX});;
 			flash.graphics.f('black').dr(0, 0, WIDTH, HEIGHT);
 			game.stage.addChild(flash);
