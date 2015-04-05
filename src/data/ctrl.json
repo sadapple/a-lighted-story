@@ -1,10 +1,103 @@
 [
 	{
-		"run": true,
+		"bgm": 1
+	},
+	{
+		"bgm": 1
+	},
+	{
+		"bgm": 1
+	},
+	{
+		"bgm": 1
+	},
+	{
+		"bgm": 0
+	},
+	{
+		"bgm": 2,
+		"bgimage": 6
+	},
+	{
+		"bgm": 2,
+		"bgimage": 7
+	},
+	{
+		"bgm": 2,
+		"bgimage": 8
+	},
+	{
 		"slow": true,
-		"canStop": false,
-		"shadow": true,
+		"bgm": 2,
+		"bgimage": 9
+	},
+	{
 		"fog": true,
-		"flash": true
+		"bgm": 2,
+		"bgimage": 10
+	},
+	{
+		"shadow": true,
+		"rightOnly": true,
+		"bgm": 3
+	},
+	{
+		"shadow": true,
+		"bgm": 3
+	},
+	{
+		"noStop": true,
+		"shadow": true,
+		"bgm": 3
+	},
+	{
+		"shadow": true,
+		"bgm": 3
+	},
+	{
+		"noRun": true,
+		"shadow": true,
+		"flash": true,
+		"onlyRight": true,
+		"bgm": 4
+	},
+	{
+		"noRun": true,
+		"shadow": true,
+		"flash": true,
+		"bgm": 4
+	},
+	{
+		"noRun": true,
+		"shadow": true,
+		"flash": true,
+		"bgm": 4
+	},
+	{
+		"lightHurt": 0.75,
+		"bgm": 5
+	},
+	{
+		"lightHurt": 0.5,
+		"bgm": 5
+	},
+	{
+		"lightHurt": 0.25,
+		"bgm": 5
+	},
+	{
+		"mustRun": true,
+		"diePass": true,
+		"onlyRight": true,
+		"lightHurt": 0,
+		"hp": 400,
+		"bgm": 0
+	},
+	{
+		"noRun": true,
+		"onlyRight": true,
+		"slow": true,
+		"bgm": 0,
+		"bgimage": 22
 	}
 ]

@@ -16,12 +16,12 @@ var P_STATE_CHANGE = [0.025, 0.03, 0.035, 0.04];
 var ME_MOVE_SPEED = 3;
 var ME_ACTION_SPEED = 6; // no larger than 6
 var ME_SLOW_RATE = 0.5;  // slow_speed = slow_rate * normal_speed
-var ME_S_R = 8;          // radius of my shadow
-var ME_S_DES_PER_FRAME = 0.01;
-var ME_S_START_ALPHA = 0.4;   // alpha when the shadow appear
-var FOG_R = 60;
+var ME_S_R = 12;          // radius of my shadow
+var ME_S_DES_PER_FRAME = 0.003;
+var ME_S_START_ALPHA = 0.096;   // alpha when the shadow appear
+var FOG_R = 100;
 var FLASH_ALPHA_MIN = 0.0;
-var FLASH_ALPHA_MAX = 0.9;
+var FLASH_ALPHA_MAX = 0.1;
 var ME_ACTION_DAMAGE = 4;
 var ME_ACTION_DIF = Math.PI/8;
 var ME_DAMAGE_PER_R = 1;
@@ -71,6 +71,9 @@ var parseMap = function(level){
 			sizeState: 0
 		});
 	}
+	// black background
+	var mapBackground = new createjs.Shape();
+	mapBackground.graphics.f('black').r(0, 0, WIDTH, HEIGHT);
 	// draw map
 	var blur = Number(a[6]);
 	var s = a[0];
@@ -88,12 +91,16 @@ var parseMap = function(level){
 		}
 	}
 	picture.filters = [ new createjs.BoxBlurFilter(6*blur+2,6*blur+2,1) ];
-	if(!map.white)
-		picture.cache(0,0,WIDTH,HEIGHT);
-	else
-		picture.cache(24,24,WIDTH-48,HEIGHT-48)
 	map.block = block;
-	map.picture = picture;
+	map.picture = new createjs.Container().set({x:0,y:0});
+	map.picture.addChild(mapBackground);
+	map.picture.addChild(picture);
+	// add image above if needed
+	if(game.ctrl[level].bgimage) {
+		var img = new createjs.Bitmap( game.mainResource.getResult('img' + game.ctrl[level].bgimage) );
+		map.picture.addChild(img);
+	}
+	picture.cache(0,0,WIDTH,HEIGHT);
 	// calculate wall
 	var wall = new Array(90*160);
 	for(var i=0; i<90; i++)
@@ -252,7 +259,7 @@ var startLevel = function(level){
 	}
 
 	// switch music
-	if(game.curMusic !== game.words[level].chapter) {
+	if(game.curMusic !== game.ctrl[level].bgm) {
 		var curVol = 1;
 		var volDown = function(){
 			curVol -= 0.04;
@@ -260,20 +267,8 @@ var startLevel = function(level){
 				curVol = 0;
 				// switch music
 				createjs.Sound.stop();
-				game.curMusic = game.words[level].chapter;
-				switch(game.curMusic) {
-					case 1:
-						createjs.Sound.play('bgm1', createjs.Sound.INTERRUPT_ANY, 0, 0, -1);
-						break;
-					case 2:
-						createjs.Sound.play('bgm2', createjs.Sound.INTERRUPT_ANY, 0, 0, -1);
-						break;
-					case 3:
-						createjs.Sound.play('bgm3', createjs.Sound.INTERRUPT_ANY, 0, 0, -1);
-						break;
-					default:
-						createjs.Sound.play('bgm4', createjs.Sound.INTERRUPT_ANY, 0, 0, -1);
-				}
+				game.curMusic = game.ctrl[level].bgm || 0;
+				createjs.Sound.play('bgm' + game.curMusic, createjs.Sound.INTERRUPT_ANY, 0, 0, -1);
 				createjs.Ticker.removeEventListener('tick', volDown);
 				createjs.Ticker.addEventListener('tick', volUp);
 				storyLoopStart();
@@ -306,7 +301,8 @@ var startLevel = function(level){
 	// story loop
 	var storyLoopStart = function(){
 		// show level words
-		var story = [game.words[level].story];
+		var story = game.words[level].story;
+		if(story.constructor !== Array) story = [story];
 		var storyText = new createjs.Text();
 		storyText.textAlign = 'center';
 		storyText.textBaseline = 'middle';
@@ -320,8 +316,8 @@ var startLevel = function(level){
 		var isFadeIn = true;
 		var FADE_ALPHA_MIN = -1;
 		var FADE_ALPHA_STEP = 0.04;
-		var FADE_ALPHA_MAX_STD = 1.25;
-		var FADE_ALPHA_MAX_PER_CHAR = 0.05;
+		var FADE_ALPHA_MAX_STD = 1;
+		var FADE_ALPHA_MAX_PER_CHAR = 0.04;
 		storyContainer.alpha = -1;
 		var fadeAlphaMax = 1;
 		userCtrl.skip = false;
@@ -361,7 +357,7 @@ var startLevel = function(level){
 							storyText.lineHeight = 36;
 							storyText.color = '#c0c0c0';
 							storyText.text = story[i].slice(8);
-							storyText.cache(-480, -60, 960, 120);
+							storyText.cache(-480, -60, 960, 240);
 							fadeAlphaMax = storyTime(story[i])*0.7;
 							storyContainer.addChild(storyText);
 						} else if(story[i].slice(0,5) === '!her:') {
@@ -458,7 +454,7 @@ var startLevel = function(level){
 
 		// init
 		var meHpMax = ME_HP_MAX[game.settings.difficulty];
-		var meHp = meHpMax;
+		var meHp = game.ctrl[level].hp || meHpMax;
 		var map = parseMap(level);
 		var mePicture = null;
 		if(map.white)
@@ -700,22 +696,27 @@ var startLevel = function(level){
 		};
 
 		// calc hp
+		var lightHurt = game.ctrl[level].lightHurt;
+		if(typeof(lightHurt) === 'undefined') lightHurt = 1;
 		createjs.Ticker.addEventListener('tick', function(){
 			if(userCtrl.paused) return;
-			if(userCtrl.action && level > 1) meHp -= ME_ACTION_DAMAGE;
-			for(var i=0; i<lights.length; i++) {
+			if(running && level > 1) meHp -= ME_ACTION_DAMAGE;
+			for(var i=0; !controlConfig.noRun && i<lights.length; i++) {
 				var a = lights[i];
 				var dx = a.x - mePicture.x;
 				var dy = a.y - mePicture.y;
 				var d = Math.sqrt(dx*dx + dy*dy) - ME_R;
 				if(d <= a.r) {
 					if(a.r-d > ME_R*2)
-						meHp -= ME_R*2*ME_DAMAGE_PER_R;
+						meHp -= ME_R*2*ME_DAMAGE_PER_R*lightHurt;
 					else
-						meHp -= (a.r-d)*ME_DAMAGE_PER_R;
+						meHp -= (a.r-d)*ME_DAMAGE_PER_R*lightHurt;
 				}
 			}
-			if(meHp <= 0) resetLevel();
+			if(meHp <= 0) {
+				if(game.ctrl[level].diePass) doneLevel();
+				else resetLevel();
+			}
 			// check end
 			var dx = map.endX[0] - mePicture.x;
 			var dy = map.endY[0] - mePicture.y;
@@ -729,7 +730,11 @@ var startLevel = function(level){
 		// handling moves
 		var actionAni = false;
 		var shadowList = [];
+		var running = false;
+		var prevCtrlX = 0;
+		var prevCtrlY = 0;
 		createjs.Ticker.addEventListener('tick', function(){
+			running = false;
 			if(userCtrl.paused) return;
 			// move
 			var x = 0;
@@ -738,13 +743,18 @@ var startLevel = function(level){
 			if(userCtrl.down) y++;
 			if(userCtrl.left) x--;
 			if(userCtrl.right) x++;
-			if (controlConfig.onlyRight && x < 0) {
-				x = 0;
+			if (controlConfig.onlyRight) {
+				if(x < 0) x = 0;
+				y = 0;
 			}
 			if (controlConfig.noStop && !x && !y) {
-				x = 1;
+				x = prevCtrlX;
+				y = prevCtrlY;
+			} else if(controlConfig.noStop) {
+				prevCtrlX = x;
+				prevCtrlY = y;
 			}
-			if(userCtrl.action && !controlConfig.noRun) {
+			if(controlConfig.mustRun || (userCtrl.action && !controlConfig.noRun)) {
 				// allow run when `ctrl.noRun` is false
 				if(!actionAni) {
 					actionAni = true;
@@ -761,6 +771,7 @@ var startLevel = function(level){
 					p += Math.random()*ME_ACTION_DIF*2 - ME_ACTION_DIF;
 					x = ME_ACTION_SPEED * Math.cos(p);
 					y = ME_ACTION_SPEED * Math.sin(p);
+					running = true;
 				}
 			} else {
 				// standard move
@@ -836,31 +847,35 @@ var startLevel = function(level){
 			}
 		});
 
-		// show me and map
+		// show map
+		game.stage.addChild(map.picture);
+
+		// show me
 		game.stage.addChild(mePicture);
 		mePicture.x = map.startX;
 		mePicture.y = map.startY;
 		mePicture.gotoAndPlay('normal');
-		game.stage.addChild(map.picture);
-
 		if (controlConfig.shadow) {
 			var meShadow = new createjs.Container();
 			game.stage.addChild(meShadow);
 		}
 
-		// add a layer for images above map
-		var mapImageLayer = new createjs.Container().set({x:0,y:0});
-		game.stage.addChild(mapImageLayer);
-
 		// add a fog layer
 		if (controlConfig.fog) {
 			var fog = new createjs.Shape();
-			fog.graphics.f('white').dc(0, 0, FOG_R);
+			fog.graphics.f('white').dc(0, 0, FOG_R-8);
+			fog.filters = [ new createjs.BoxBlurFilter(8,8,1) ];
 			fog.cache(-FOG_R, -FOG_R, 2*FOG_R, 2*FOG_R);
 			fog.compositeOperation = 'destination-in';
 			fog.x = mePicture.x;
 			fog.y = mePicture.y;
+			var fogBackground = new createjs.Shape();
+			fogBackground.graphics.f('rgb(128,128,128)').r(8, 8, WIDTH-16, HEIGHT-16);
+			fogBackground.filters = [ new createjs.BoxBlurFilter(8,8,1) ];
+			fogBackground.cache(0, 0, WIDTH, HEIGHT);
+			fogBackground.compositeOperation = 'destination-over';
 			game.stage.addChild(fog);
+			game.stage.addChild(fogBackground);
 		}
 
 		// add flash layer
@@ -958,13 +973,15 @@ var startLevel = function(level){
 			hpOutline.graphics.ss(1).s('#fff').f('black').r(0,0,8,100);
 			hpOutline.cache(0,0,8,100);
 			var hpShape = new createjs.Shape();
-			hpShape.graphics.f('#fff').r(0,0,8,100);
+			var h = 100*meHp/meHpMax;
+			hpShape.graphics.f('#fff').r(0,100-h,8,h);
 			var hpPicture = new createjs.Container().set({x:50, y:50, alpha:0.3});
 			if(map.white) whiteMap.alpha = 1.3 - hpPicture.alpha;
 			hpPicture.addChild(hpBackground);
 			hpPicture.addChild(hpOutline);
 			hpPicture.addChild(hpShape);
 			game.stage.addChild(hpPicture);
+			if(controlConfig.noRun) hpPicture.alpha = 0;
 			var meHpOri = meHp;
 			var hpShapeAni = 0;
 			var HP_SHAPE_ANI_SPEED = 0.03;
