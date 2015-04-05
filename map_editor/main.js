@@ -8,7 +8,7 @@ $(function(){
 	});
 
 	// map: 2D Array
-	var map = new Uint8Array(90*160);
+	var map = window.map = new Uint8Array(90*160);
 
 	// inputs
 	var $blur = $('#blur');
