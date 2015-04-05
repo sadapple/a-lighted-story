@@ -384,6 +384,7 @@ game.showCover = function(){
 			} else if(e.keyCode === 82) {
 				if(confirm(game.str[21])) {
 					delete localStorage[STORAGE_ID];
+					game.settings = DEFAULT_SETTINGS;
 					game.stage.removeAllChildren();
 					createjs.Ticker.removeAllEventListeners('tick');
 					window.removeEventListener('keyup', coverKeyFunc);
@@ -400,7 +401,7 @@ game.showCover = function(){
 	if(game.mainResource) {
 		resourceLoaded({target: game.mainResource});
 	} else {
-		var q = new createjs.LoadQueue(USE_ADVANCED_LOADING, 'data/');
+		var q =  new createjs.LoadQueue(USE_ADVANCED_LOADING, 'data/');
 		q.installPlugin(createjs.Sound);
 		q.addEventListener('progress', function(e){
 			progress.c().f('#888').r(0, 0, e.progress*800, 3);
@@ -413,10 +414,18 @@ game.showCover = function(){
 				{id:'ctrl', src:'ctrl.json?v='+VERSION},
 				{id:'words', src:'words_'+game.settings.lang+'.json?v='+VERSION},
 				{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
-				{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
-				{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
-				{id:'bgm4', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
+				{id:'bgm2', src:'audio/lighted_stories.ogg|audio/lighted_stories.mp3'},
+				{id:'bgm3', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
+				{id:'bgm4', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
+				{id:'bgm5', src:'audio/lighted_stories_strings.ogg|audio/lighted_stories_strings.mp3'},
+				{id:'bgm0', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
 				{id:'tomorrow', src:'image/title_'+game.settings.lang+'.png'},
+				{id:'img6', src:'image/6.png'},
+				{id:'img7', src:'image/7.png'},
+				{id:'img8', src:'image/8.png'},
+				{id:'img9', src:'image/9.png'},
+				{id:'img10', src:'image/10.png'},
+				{id:'img22', src:'image/22.png'},
 				{src:'js/levels.js?v='+VERSION}
 			]);
 		} else {
@@ -445,10 +454,18 @@ game.showCover = function(){
 			// load else
 			q.loadManifest([
 				{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
-				{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
-				{id:'bgm3', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
-				{id:'bgm4', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
+				{id:'bgm2', src:'audio/lighted_stories.ogg|audio/lighted_stories.mp3'},
+				{id:'bgm3', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
+				{id:'bgm4', src:'audio/spreading_white.ogg|audio/spreading_white.mp3'},
+				{id:'bgm5', src:'audio/lighted_stories_strings.ogg|audio/lighted_stories_strings.mp3'},
+				{id:'bgm0', src:'audio/tomorrow_short.ogg|audio/tomorrow_short.mp3'},
 				{id:'tomorrow', src:'image/title_'+game.settings.lang+'.png'},
+				{id:'img6', src:'image/6.png'},
+				{id:'img7', src:'image/7.png'},
+				{id:'img8', src:'image/8.png'},
+				{id:'img9', src:'image/9.png'},
+				{id:'img10', src:'image/10.png'},
+				{id:'img22', src:'image/22.png'},
 				{src:'js/levels.js'}
 			]);
 		}
