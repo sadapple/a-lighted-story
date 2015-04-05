@@ -203,6 +203,7 @@ game.showCover = function(){
 		if(location.protocol !== 'file:' && location.protocol !== 'resource:') {
 			game.maps = q.getResult('maps').split('\n');
 			game.words = q.getResult('words');
+			game.ctrl = q.getResult('ctrl');
 		}
 		// show language link
 		var switchLang = function(newLang){
@@ -409,6 +410,7 @@ game.showCover = function(){
 			// advanced loading
 			q.loadManifest([
 				{id:'maps', type:'text', src:'maps.data?v='+VERSION},
+				{id:'ctrl', src:'ctrl.json?v='+VERSION},
 				{id:'words', src:'words_'+game.settings.lang+'.json?v='+VERSION},
 				{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
 				{id:'bgm2', src:'audio/tomorrow.ogg|audio/tomorrow.mp3'},
@@ -433,6 +435,13 @@ game.showCover = function(){
 			xhr2.open('GET', 'data/words_'+game.settings.lang+'.json', false);
 			xhr2.overrideMimeType('text/plain; charset=utf8');
 			xhr2.send();
+			var xhr3 = new XMLHttpRequest();
+			xhr3.addEventListener('load', function(){
+				game.ctrl = JSON.parse(xhr3.response);
+			}, false);
+			xhr3.open('GET', 'data/ctrl.json', false);
+			xhr3.overrideMimeType('text/plain; charset=utf8');
+			xhr3.send();
 			// load else
 			q.loadManifest([
 				{id:'bgm1', src:'audio/the_start_of_night.ogg|audio/the_start_of_night.mp3'},
