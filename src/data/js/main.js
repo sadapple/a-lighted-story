@@ -117,9 +117,9 @@ game.showCover = function(){
 	// show about link
 	var aboutLink = game.createTextButton('CREDIT', 18, '#000', -200, 0, function(){
 		if(location.protocol !== 'resource:')
-			window.open('change_logs.html');
+			window.open('credit.html');
 		else
-			location.href = 'change_logs.html?showback';
+			location.href = 'credit.html?showback';
 	});
 	bottomBar.addChild(aboutLink);
 

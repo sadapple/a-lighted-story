@@ -317,7 +317,7 @@ var startLevel = function(level){
 		var FADE_ALPHA_MIN = -1;
 		var FADE_ALPHA_STEP = 0.04;
 		var FADE_ALPHA_MAX_STD = 1;
-		var FADE_ALPHA_MAX_PER_CHAR = 0.04;
+		var FADE_ALPHA_MAX_PER_CHAR = 0.05;
 		storyContainer.alpha = -1;
 		var fadeAlphaMax = 1;
 		userCtrl.skip = false;
@@ -355,10 +355,10 @@ var startLevel = function(level){
 						} else if(story[i].slice(0,8) === '!author:') {
 							storyText.font = '24px'+game.lang.font;
 							storyText.lineHeight = 36;
-							storyText.color = '#c0c0c0';
+							storyText.color = '#a0a0a0';
 							storyText.text = story[i].slice(8);
 							storyText.cache(-480, -60, 960, 240);
-							fadeAlphaMax = storyTime(story[i])*0.7;
+							fadeAlphaMax = storyTime(story[i])*0.3;
 							storyContainer.addChild(storyText);
 						} else if(story[i].slice(0,5) === '!her:') {
 							storyText.font = game.lang.storyFontSize+'px'+game.lang.font;

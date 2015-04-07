@@ -1,6 +1,99 @@
 [
 	{
-		"chapter": 1,
-		"story": "ENGLISH"
+		"story": "Down the path I moved alone.",
+		"ends": []
+	}, {
+		"story": "I feared those \"lights\", who seem to burn me up.",
+		"ends": []
+	}, {
+		"story": "Rushing, stumbling, I tried to keep away.",
+		"ends": []
+	}, {
+		"story": "My life was dull, all the same in those shadowed corners.",
+		"ends": [
+			[ "Till I saw her.", null, 40 ]
+		]
+	}, {
+		"story": "That day she was wounded, huddling over there.",
+		"ends": [
+			[ "I reached for her and took her to a lightless corner.", null, 30 ]
+		]
+	}, {
+		"story": "Leaning against me, she smiled softly like a shining star. ",
+		"ends": []
+	}, {
+		"story": "The next day, we started our journey hand in hand.",
+		"ends": [
+			[ "We made our way past rugged mountain path;", 40, 60, "left" ]
+		]
+	}, {
+		"story": "through ancient maze;",
+		"ends": []
+	}, {
+		"story": "and cross rough grassland.",
+		"ends": []
+	}, {
+		"story": "Although wrapped in mist...",
+		"ends": [
+			[ "So long as we were together, we would not get lost;", 40, 480, "left" ],
+			[ "Nor could hardship and danger block our way.", 40, 480, "left" ]
+		]
+	}, {
+		"story": "However, one day, everything changed.",
+		"ends": [
+			[ "She vanished into those lights right before my eyes.", null, 40 ],
+			[ "I cried out and rushed over, but she was not there.", null, 40 ]
+		]
+	}, {
+		"story": "She must be somewhere. I started seeking through every corner around.",
+		"ends": []
+	}, {
+		"story": "On and on I sought,",
+		"ends": []
+	}, {
+		"story": "But found no sign of her.",
+		"ends": [
+			[ "Except for a note left,", null, 30 ]
+		]
+	}, {
+		"story": "\"Farewell\"",
+		"ends": ["That day, I left him. I had to go.", null, 40]
+	}, {
+		"story": "I know, I am a \"light\".",
+		"ends": [
+			[ "When I recover fully from my wounds, he could not get close any more.", 60, 60, "left" ],
+			[ "I wanted to keep that harmless me in his memory.", 480, 60, "center"],
+			[ "I would return to the world of lights.", 900, 60, "right" ]
+		]
+	}, {
+		"story": "We were drawing further apart, separated in two different worlds.",
+		"ends": [
+			[ "With heavy steps, and face full of tears.", null, 40 ]
+		]
+	}, {
+		"story": "I sought for her all around like mad.",
+		"ends": [
+			[ "Deep into the world of lights, twisting my way through.", null, 30 ]
+		]
+	}, {
+		"story": "Gradually, my fear of those \"lights\" was weakened.",
+		"ends": []
+	}, {
+		"story": "They no longer stung me that hard; the pain became bearable.",
+		"ends": [
+			[ "Bravery and toughness grew stronger and stronger in me.", null, 30 ],
+			[ "Firmer was my faith, and so were my steps --", null, 30 ],
+			[ "-- I WILL FIND HER!", null, 30 ]
+		]
+	}, {
+		"story": "I found her.",
+		"ends": [
+			[ "She was -- on the other side of the \"lights\".", null, 40 ]
+		]
+	}, {
+		"story": [" ", "!author:CREDIT\nScripts / Chossy\nIllustration / tongtonggggg\nMusic / LastLeaf\nProgramming / jetzhliu, LastLeaf", "......", "And so, I have been lighted as well."],
+		"ends": [
+			[ "She guided my way into the world of lights.", null, 40 ]
+		]
 	}
 ]

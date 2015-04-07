@@ -91,7 +91,7 @@
 			[ "她在——光的那头。", null, 40 ]
 		]
 	}, {
-		"story": ["!author:创意团队\nLastLeaf, Chossy, jetzhliu, tongtonggggg", "!author:文本 / LastLeaf, Chossy\n插图 / tongtonggggg\n音乐 / LastLeaf\n程序 / jetzhliu, LastLeaf", "原来，我也变成了光。"],
+		"story": [" ", "!author:CREDIT\n文本 / LastLeaf\n插图 / tongtonggggg\n音乐 / LastLeaf\n程序 / jetzhliu, LastLeaf", "……", "原来，我也变成了光。"],
 		"ends": [
 			[ "她，将我带到光的世界里了。", null, 40 ]
 		]
