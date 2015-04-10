@@ -106,7 +106,7 @@ game.showCover = function(){
 	bottomBar.addChild(lastleafLink);
 
 	// show license link
-	var licenseLink = game.createTextButton(game.str[3], 18, '#000', -320, 0, function(){
+	var licenseLink = game.createTextButton(game.str[3], 16, '#000', -320, 0, function(){
 		if(location.protocol !== 'resource:')
 			window.open('license_'+game.settings.lang+'.html');
 		else
@@ -115,7 +115,7 @@ game.showCover = function(){
 	bottomBar.addChild(licenseLink);
 
 	// show about link
-	var aboutLink = game.createTextButton('CREDIT', 18, '#000', -200, 0, function(){
+	var aboutLink = game.createTextButton('CREDIT', 16, '#000', -200, 0, function(){
 		if(location.protocol !== 'resource:')
 			window.open('credit.html');
 		else
@@ -124,21 +124,18 @@ game.showCover = function(){
 	bottomBar.addChild(aboutLink);
 
 	// show subtitle
-	var subtitle = game.createTextButton(game.str[4], 18, '#000', 160, 0, function(){
+	var subtitle = game.createTextButton(game.str[4], 16, '#000', 160, 0, function(){
 		if(location.protocol !== 'resource:')
 			window.open('http://github.com/LastLeaf/Tomorrow');
 	});
 	bottomBar.addChild(subtitle);
 
 	// show title
-	if(game.settings.lang === 'zh-CN')
-		document.title = '明天 | LastLeaf';
-	else
-		document.title = 'Tomorrow | LastLeaf';
+	document.title = 'A Lighted Story';
 	var titleImg = new createjs.Bitmap(res.getResult('title'));
 	game.stage.addChild(titleImg);
 	titleImg.x = titleImg.cx = (WIDTH - titleImg.image.width) / 2;
-	titleImg.y = titleImg.cy = 40;
+	titleImg.y = titleImg.cy = 240 - titleImg.image.height;
 	titleImg.alpha = 0.8;
 
 	// show progress bar
@@ -193,11 +190,6 @@ game.showCover = function(){
 	var resourceLoaded = function(e){
 		var q = game.mainResource = e.target;
 		progress.c().f('#888').r(0, 0, 800, 3);
-		// update title for language changing
-		if(game.settings.lang === 'zh-CN')
-			document.title = '明天 | LastLeaf';
-		else
-			document.title = 'Tomorrow | LastLeaf';
 		titleImg.image = q.getResult('tomorrow');
 		// get results
 		if(location.protocol !== 'file:' && location.protocol !== 'resource:') {
@@ -425,6 +417,7 @@ game.showCover = function(){
 				{id:'img8', src:'image/8.png'},
 				{id:'img9', src:'image/9.png'},
 				{id:'img10', src:'image/10.png'},
+				{id:'img14', src:'image/14.png'},
 				{id:'img22', src:'image/22.png'},
 				{src:'js/levels.js?v='+VERSION}
 			]);
@@ -465,6 +458,7 @@ game.showCover = function(){
 				{id:'img8', src:'image/8.png'},
 				{id:'img9', src:'image/9.png'},
 				{id:'img10', src:'image/10.png'},
+				{id:'img14', src:'image/14.png'},
 				{id:'img22', src:'image/22.png'},
 				{src:'js/levels.js'}
 			]);

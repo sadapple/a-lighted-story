@@ -21,10 +21,12 @@ var ME_S_DES_PER_FRAME = 0.003;
 var ME_S_START_ALPHA = 0.096;   // alpha when the shadow appear
 var FOG_R = 100;
 var FLASH_ALPHA_MIN = 0.0;
-var FLASH_ALPHA_MAX = 0.1;
+var FLASH_ALPHA_MAX = 0.2;
 var ME_ACTION_DAMAGE = 4;
 var ME_ACTION_DIF = Math.PI/8;
 var ME_DAMAGE_PER_R = 1;
+var STORY_FONT_SIZE = 28;
+var MAP_TEXT_FONT_SIZE = 26;
 
 // parse a map
 
@@ -94,11 +96,12 @@ var parseMap = function(level){
 	map.block = block;
 	map.picture = new createjs.Container().set({x:0,y:0});
 	map.picture.addChild(mapBackground);
-	map.picture.addChild(picture);
 	// add image above if needed
 	if(game.ctrl[level].bgimage) {
 		var img = new createjs.Bitmap( game.mainResource.getResult('img' + game.ctrl[level].bgimage) );
 		map.picture.addChild(img);
+	} else {
+		map.picture.addChild(picture);
 	}
 	picture.cache(0,0,WIDTH,HEIGHT);
 	// calculate wall
@@ -136,13 +139,15 @@ var parseMap = function(level){
 // basic shape generater
 
 var generateRound = function(color, r1, r2){
-	var round = new createjs.Shape();
-	var a = (r1+r2) / 2;
-	var b = r2 - a;
-	round.graphics.f(color).arc(0,0,a,0,2*Math.PI);
-	round.filters = [ new createjs.BoxBlurFilter(b,b,1) ];
-	round.cache(-r2,-r2,r2*2,r2*2);
-	return round;
+	var container = new createjs.Container();
+	for(var i=r1; i<r2; i++) {
+		var round = new createjs.Shape();
+		round.graphics.f(color).arc(0,0,i,0,2*Math.PI);
+		round.alpha = (r2-i)/(r2-r1);
+		container.addChild(round);
+	}
+	container.cache(-r2,-r2,r2*2,r2*2);
+	return container;
 };
 
 var lightCache = new Array(LIGHT_R_MAX+1);
@@ -360,18 +365,18 @@ var startLevel = function(level){
 							storyText.cache(-480, -60, 960, 240);
 							fadeAlphaMax = storyTime(story[i])*0.3;
 							storyContainer.addChild(storyText);
-						} else if(story[i].slice(0,5) === '!her:') {
-							storyText.font = game.lang.storyFontSize+'px'+game.lang.font;
-							storyText.lineHeight = game.lang.storyFontSize*1.5;
+						} else if(story[i].slice(0,6) === '!long:') {
+							storyText.font = STORY_FONT_SIZE+'px'+game.lang.font;
+							storyText.lineHeight = STORY_FONT_SIZE*1.5;
 							storyText.color = '#FBB7BF';
-							storyText.text = story[i].slice(5);
+							storyText.text = story[i].slice(6);
 							storyText.cache(-480, -30, 960, 60);
-							fadeAlphaMax = storyTime(story[i]);
+							fadeAlphaMax = storyTime(story[i])*2;
 							storyContainer.addChild(storyText);
 						}
 					} else {
-						storyText.font = game.lang.storyFontSize+'px'+game.lang.font;
-						storyText.lineHeight = game.lang.storyFontSize*1.5;
+						storyText.font = STORY_FONT_SIZE+'px'+game.lang.font;
+						storyText.lineHeight = STORY_FONT_SIZE*1.5;
 						storyText.color = '#c0c0c0';
 						storyText.text = story[i];
 						storyText.cache(-480, -30, 960, 60);
@@ -659,20 +664,20 @@ var startLevel = function(level){
 			if(textInfo) {
 				// show text in map
 				var text = new createjs.Text();
-				text.font = '24px'+game.lang.font;
+				text.font = MAP_TEXT_FONT_SIZE+'px'+game.lang.font;
 				text.lineHeight = 36;
-				text.color = '#c0c0c0';
+				text.color = textInfo[4] || '#fff';
 				text.text = textInfo[0];
 				text.textAlign = textInfo[3] || 'center';
 				text.textBaseline = 'middle';
 				text.x = textInfo[1] || 480;
 				text.y = textInfo[2] || 270;
-				text.filters = [ new createjs.BoxBlurFilter(0.5,0.5,1) ];
-				if(textInfo[3] === 'left')
+				text.filters = [ new createjs.BoxBlurFilter(1,1,1) ];
+				if(text.textAlign === 'left')
 					text.cache(0, -20, 960, 40);
-				else if(textInfo[3] === 'center')
+				else if(text.textAlign === 'center')
 					text.cache(-480, -20, 960, 40);
-				else if(textInfo[3] === 'right')
+				else if(text.textAlign === 'right')
 					text.cache(-960, -20, 960, 40);
 				mapTextLayer.removeAllChildren();
 				mapTextLayer.addChild(text);
@@ -879,26 +884,26 @@ var startLevel = function(level){
 		}
 
 		// add flash layer
+		var lightsLayer = new createjs.Container().set({x:0,y:0});
+		game.stage.addChild(lightsLayer);
 		if (controlConfig.flash) {
 			var flash = new createjs.Shape().set({alpha: FLASH_ALPHA_MAX});;
 			flash.graphics.f('black').dr(0, 0, WIDTH, HEIGHT);
 			game.stage.addChild(flash);
-			var sp = -0.01;
+			var sp = -0.005;
 			createjs.Ticker.addEventListener('tick', function() {
 				if(userCtrl.paused) return;
 				flash.alpha += sp;
 				if (flash.alpha >= FLASH_ALPHA_MAX) {
-					sp = -0.01 * (0.5 + Math.random());
+					sp = -0.005 * (0.5 + Math.random());
 				}
 				if (flash.alpha <= FLASH_ALPHA_MIN) {
-					sp  = 0.01 * (0.5 + Math.random());
+					sp  = 0.005 * (0.5 + Math.random());
 				}
 			});
 		}
 
 		// update lights
-		var lightsLayer = new createjs.Container().set({x:0,y:0});
-		game.stage.addChild(lightsLayer);
 		var lightsSpeed = LIGHTS_SPEED[game.settings.difficulty];
 		createjs.Ticker.addEventListener('tick', function(){
 			if(userCtrl.paused) return;

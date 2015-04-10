@@ -1,9 +1,8 @@
 // Copyright 2013 LastLeaf, MIT LICENSE
 game.langs = {
 	'zh-CN': {
-		titleFont: ' "文泉驿正黑","微软雅黑" ',
-		font: ' "文泉驿正黑","微软雅黑","黑体" ',
-		storyFontSize: 30,
+		titleFont: ' "DejaVu Serif","黑体","文泉驿正黑","微软雅黑" ',
+		font: ' "DejaVu Serif","黑体","文泉驿正黑","微软雅黑" ',
 		str: [
 			'正在检测浏览器兼容性……',
 			'你的浏览器不支持本游戏，点这里查看解决方案',
@@ -38,7 +37,6 @@ game.langs = {
 	'en': {
 		titleFont: ' "DejaVu Serif", "sans-serif" ',
 		font: ' "DejaVu Serif", "sans-serif" ',
-		storyFontSize: 28,
 		str: [
 			'Detecting browser compatibilities...',
 			'Your browser does not support this game. Click here to see the solution.',
