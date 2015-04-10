@@ -96,12 +96,11 @@ var parseMap = function(level){
 	map.block = block;
 	map.picture = new createjs.Container().set({x:0,y:0});
 	map.picture.addChild(mapBackground);
+	map.picture.addChild(picture);
 	// add image above if needed
 	if(game.ctrl[level].bgimage) {
 		var img = new createjs.Bitmap( game.mainResource.getResult('img' + game.ctrl[level].bgimage) );
 		map.picture.addChild(img);
-	} else {
-		map.picture.addChild(picture);
 	}
 	picture.cache(0,0,WIDTH,HEIGHT);
 	// calculate wall
@@ -575,15 +574,15 @@ var startLevel = function(level){
 		};
 		var levelLinksUpdate = function(){
 			levelLinkFrame.removeAllChildren();
-			levelLink(75, 120, 0, !levelLinkSelected);
-			for(var i=1; i<=game.settings.levelReached; i++) {
-				var r = Math.floor((i-1)/6) + 1;
-				var c = (i-1)%6 + 2;
-				if(i === 19) {
+			//levelLink(75, 120, 0, !levelLinkSelected);
+			for(var i=0; i<=game.settings.levelReached; i++) {
+				var r = Math.floor(i/7) + 1;
+				var c = i%7 + 1;
+				if(i === 21) {
 					r = 3;
 					c = 8;
 				}
-				levelLink(c*50+25, r*50+70, i, (i === levelLinkSelected));
+				levelLink(c*50+25, r*50+70, i+1, (i === levelLinkSelected));
 			}
 		};
 		var pauseLayerShown = false;
@@ -612,10 +611,10 @@ var startLevel = function(level){
 			if(pauseArrowKey) return;
 			pauseArrowKey = 3;
 			// update level link
-			if(userCtrl.up && levelLinkSelected>=7 && levelLinkSelected<=18)
-				levelLinkSelected -= 6;
-			if(userCtrl.down && levelLinkSelected>=1 && levelLinkSelected<=12 && levelLinkSelected<=game.settings.levelReached-6)
-				levelLinkSelected += 6;
+			if(userCtrl.up && levelLinkSelected>=7 && levelLinkSelected<=20)
+				levelLinkSelected -= 7;
+			if(userCtrl.down && levelLinkSelected<=13 && levelLinkSelected<=game.settings.levelReached-7)
+				levelLinkSelected += 7;
 			if(userCtrl.left && levelLinkSelected>=1) levelLinkSelected--;
 			if(userCtrl.right && levelLinkSelected<game.settings.levelReached) levelLinkSelected++;
 			if(userCtrl.up || userCtrl.down || userCtrl.left || userCtrl.right) {

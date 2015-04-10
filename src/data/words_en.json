@@ -19,7 +19,7 @@
 			[ "I reached for her and took her to a lightless corner.", null, 30 ]
 		]
 	}, {
-		"story": "Leaning against me, she smiled softly like a shining star. ",
+		"story": "Leaning against me, she smiled softly like a shining star.",
 		"ends": []
 	}, {
 		"story": "The next day, we started our journey hand in hand.",
@@ -45,7 +45,7 @@
 			[ "I cried out and rushed over, but she was not there.", null, 40 ]
 		]
 	}, {
-		"story": "She must be somewhere. I started seeking through every corner around.",
+		"story": "She must be somewhere. I started seeking through every corner.",
 		"ends": []
 	}, {
 		"story": "On and on I sought,",
@@ -63,14 +63,14 @@
 	}, {
 		"story": "I know, I am a \"light\".",
 		"ends": [
-			[ "When I recover fully from my wounds, he could not get close any more.", 60, 60, "left" ],
+			[ "When I fully recover, he could not get close any more.", 60, 60, "left" ],
 			[ "I wanted to keep that harmless me in his memory.", 480, 60, "center"],
 			[ "I would return to the world of lights.", 900, 60, "right" ]
 		]
 	}, {
 		"story": "We were drawing further apart, separated in two different worlds.",
 		"ends": [
-			[ "With heavy steps, and face full of tears.", null, 40 ]
+			[ "With heavy steps, and face full of tears.", 700, 40, "right" ]
 		]
 	}, {
 		"story": "I sought for her all around like mad.",

@@ -57,7 +57,7 @@ game.langs = {
 			'Press [M] to turn on/off music; [<] and [>] to adjust the volume.',
 			'Continue',
 			'Start Game',
-			'You are at Level %1. Press [R] to clear the present game progress.',
+			'You are at Level %1. Press [R] to clear current game progress.',
 			'Start a new game. Your game progress will be auto-saved.',
 			'Clear the present game progress and settings?',
 			'Volume: ',
