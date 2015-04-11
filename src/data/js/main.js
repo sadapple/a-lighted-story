@@ -316,7 +316,7 @@ game.showCover = function(){
 		});
 		startButton.addEventListener('mouseover', function(){
 			if(game.settings.curLevel)
-				hint.show(game.str[19].replace('%1', game.settings.curLevel), 3000);
+				hint.show(game.str[19].replace('%1', game.settings.curLevel+1), 3000);
 			else
 				hint.show(game.str[20], 3000);
 		});

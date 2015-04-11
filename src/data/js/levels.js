@@ -12,7 +12,7 @@ var LIGHT_R_MAX = 50*6;
 // game
 var ME_HP_MAX = [5000,2000,1000,700];
 var LIGHTS_SPEED = [2,2.5,3,3.5];
-var P_STATE_CHANGE = [0.025, 0.03, 0.035, 0.04];
+var P_STATE_CHANGE = [0.02, 0.025, 0.03, 0.035];
 var ME_MOVE_SPEED = 3;
 var ME_ACTION_SPEED = 6; // no larger than 6
 var ME_SLOW_RATE = 0.5;  // slow_speed = slow_rate * normal_speed
@@ -78,60 +78,83 @@ var parseMap = function(level){
 	mapBackground.graphics.f('black').r(0, 0, WIDTH, HEIGHT);
 	// draw map
 	var blur = Number(a[6]);
-	var s = a[0];
-	var block = new Array(90*160);
-	var picture = new createjs.Shape();
-	var g = picture.graphics.f('rgb(128,128,128)');
-	for(var i=0; i<2400; i++) {
-		var t = s.charCodeAt(i) - 48;
-		for(var j=5; j>=0; j--) {
-			var p = i*6+j;
-			block[p] = !(t%2);
-			t = t >> 1;
-			if(block[p])
-				g.r((p%160)*6, Math.floor(p/160)*6, 6, 6);
+	var mapStrs = a[0].split(' ');
+	var pictures = [];
+	while(mapStrs.length) {
+		var s = mapStrs.shift();
+		var block = new Array(90*160);
+		var picture = new createjs.Shape();
+		var g = picture.graphics.f('black').r(0, 0, WIDTH, HEIGHT).f('rgb(128,128,128)');
+		for(var i=0; i<2400; i++) {
+			var t = s.charCodeAt(i) - 48;
+			for(var j=5; j>=0; j--) {
+				var p = i*6+j;
+				block[p] = !(t%2);
+				t = t >> 1;
+				if(block[p])
+					g.r((p%160)*6, Math.floor(p/160)*6, 6, 6);
+			}
 		}
+		picture.filters = [ new createjs.BoxBlurFilter(6*blur+2,6*blur+2,1) ];
+		picture.cache(0,0,WIDTH,HEIGHT);
+		picture.block = block;
+		pictures.push(picture);
 	}
-	picture.filters = [ new createjs.BoxBlurFilter(6*blur+2,6*blur+2,1) ];
-	map.block = block;
 	map.picture = new createjs.Container().set({x:0,y:0});
-	map.picture.addChild(mapBackground);
-	map.picture.addChild(picture);
+	map.picture.addChild(pictures.shift());
 	// add image above if needed
 	if(game.ctrl[level].bgimage) {
 		var img = new createjs.Bitmap( game.mainResource.getResult('img' + game.ctrl[level].bgimage) );
 		map.picture.addChild(img);
 	}
-	picture.cache(0,0,WIDTH,HEIGHT);
-	// calculate wall
-	var wall = new Array(90*160);
-	for(var i=0; i<90; i++)
-		for(var j=0; j<160; j++) {
-			if(!block[i*160+j])
-				wall[i*160+j] = 0; // center can reach
-			else {
-				wall[i*160+j] = 2; // nothing can reach
-				if(blur === 1) {
-					for(var di=-1; di<=1; di++)
-						for(var dj=-1; dj<=1; dj++) {
-							if(i+di<0 || i+di>=90 || j+dj<0 || j+dj>=160) continue;
-							if(block[(i+di)*160+(j+dj)]) continue;
-							wall[i*160+j] = 1; // border can reach
-							break;
-						}
-				} else if(blur === 2) {
-					for(var di=-2; di<=2; di++)
-						for(var dj=-2; dj<=2; dj++) {
-							if(i+di<0 || i+di>=90 || j+dj<0 || j+dj>=160) continue;
-							if(block[(i+di)*160+(j+dj)]) continue;
-							wall[i*160+j] = 1; // border can reach
-							break;
-						}
-				}
+	map.nextPicture = function(){
+		if(!pictures.length) return;
+		var picture = pictures.shift();
+		picture.alpha = 0;
+		map.picture.addChildAt(picture, 1);
+		var fadeInNext = function(){
+			picture.alpha += 0.04;
+			if(picture.alpha >= 1) {
+				map.picture.removeChildAt(0);
+				calWall();
+				createjs.Ticker.removeEventListener('tick', fadeInNext);
 			}
 		}
-	map.blur = blur;
-	map.wall = wall;
+		createjs.Ticker.addEventListener('tick', fadeInNext);
+	};
+	// calculate wall
+	var calWall = function(block){
+		var block = map.picture.getChildAt(0).block;
+		var wall = new Array(90*160);
+		for(var i=0; i<90; i++)
+			for(var j=0; j<160; j++) {
+				if(!block[i*160+j])
+					wall[i*160+j] = 0; // center can reach
+				else {
+					wall[i*160+j] = 2; // nothing can reach
+					if(blur === 1) {
+						for(var di=-1; di<=1; di++)
+							for(var dj=-1; dj<=1; dj++) {
+								if(i+di<0 || i+di>=90 || j+dj<0 || j+dj>=160) continue;
+								if(block[(i+di)*160+(j+dj)]) continue;
+								wall[i*160+j] = 1; // border can reach
+								break;
+							}
+					} else if(blur === 2) {
+						for(var di=-2; di<=2; di++)
+							for(var dj=-2; dj<=2; dj++) {
+								if(i+di<0 || i+di>=90 || j+dj<0 || j+dj>=160) continue;
+								if(block[(i+di)*160+(j+dj)]) continue;
+								wall[i*160+j] = 1; // border can reach
+								break;
+							}
+					}
+				}
+			}
+		map.blur = blur;
+		map.wall = wall;
+	};
+	calWall();
 	return map;
 };
 
@@ -660,6 +683,7 @@ var startLevel = function(level){
 		var levelEndIndex = 0;
 		var levelEndpoint = function(){
 			var textInfo = game.words[level].ends[levelEndIndex++];
+			map.nextPicture();
 			if(textInfo) {
 				// show text in map
 				var text = new createjs.Text();
