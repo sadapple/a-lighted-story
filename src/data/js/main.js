@@ -88,7 +88,7 @@ game.showCover = function(){
 	lastleafLink.getChildAt(1).alpha = 0.8;
 	lastleafLink.getChildAt(2).visible = false;
 	lastleafLink.x = 280;
-	lastleafLink.y = -15;
+	lastleafLink.y = -16;
 	lastleafLink.scaleX = 0.6;
 	lastleafLink.scaleY = 0.6;
 	lastleafLink.addEventListener('mouseover', function(){
@@ -122,6 +122,14 @@ game.showCover = function(){
 			location.href = 'credit.html?showback';
 	});
 	bottomBar.addChild(aboutLink);
+
+	// show github link
+	if(location.protocol !== 'resource:') {
+		var aboutLink = game.createTextButton('GitHub', 16, '#000', -80, 0, function(){
+			window.open('https://github.com/MistyMiracle/a-lighted-story');
+		});
+		bottomBar.addChild(aboutLink);
+	}
 
 	// show subtitle
 	var subtitle = game.createTextButton(game.str[4], 16, '#000', 160, 0, function(){
