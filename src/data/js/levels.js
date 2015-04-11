@@ -205,6 +205,7 @@ var whiteMap = (function(){
 // user operations
 
 var userCtrlReset = function(){
+	userCtrl.animating = false;
 	userCtrl.paused = false;
 	userCtrl.skip = false;
 	userCtrl.reset = false;
@@ -215,6 +216,7 @@ var userCtrlReset = function(){
 	userCtrl.right = false;
 };
 var userCtrl = {
+	animating: false,
 	paused: false,
 	reset: false,
 	skip: false,
@@ -233,6 +235,12 @@ var pause = function(){
 var unpause = function(){
 	userCtrl.paused = false;
 };
+var startAnimate = function(){
+	userCtrl.animating = true;
+};
+var endAnimate = function(){
+	userCtrl.animating = false;
+}
 
 // handling a level
 
@@ -414,7 +422,7 @@ var startLevel = function(level){
 		game.stage.addChild(container);
 		var rounds = [];
 		createjs.Ticker.addEventListener('tick', function(){
-			if(userCtrl.paused) return;
+			if(userCtrl.paused || userCtrl.animating) return;
 			if(Math.random() < GEN_P) {
 				var r1 = R1_MIN + Math.random()*(R1_MAX-R1_MIN);
 				var r2 = R2_MIN + Math.random()*(R2_MAX-R2_MIN);
@@ -461,10 +469,17 @@ var startLevel = function(level){
 		var meHp = game.ctrl[level].hp || meHpMax;
 		var map = parseMap(level);
 		var mePicture = null;
-		if(map.white)
-			mePicture = generatePerson('#000');
-		else
-			mePicture = generatePerson('#808080');
+		var herPicture = null;
+		// if(map.white)
+		// 	mePicture = generatePerson('#000');
+		// else
+		// 	mePicture = generatePerson('#808080');
+		// herPicture = generatePerson('#0f0');
+		mePicture = generatePerson(game.ctrl[level].player == 2 ? 'pink' : '#808080');
+		if (game.ctrl[level].p2) {
+			// two role
+			herPicture = generatePerson(game.ctrl[level].player == 1 ? 'pink' : '#808080')
+		}
 		var lights = map.lights;
 		userCtrlReset();
 
@@ -651,7 +666,7 @@ var startLevel = function(level){
 
 		// reset
 		createjs.Ticker.addEventListener('tick', function(){
-			if(userCtrl.paused || !userCtrl.reset) return;
+			if(userCtrl.paused || userCtrl.animating || !userCtrl.reset) return;
 			resetLevel();
 			userCtrl.reset = false;
 		});
@@ -659,6 +674,56 @@ var startLevel = function(level){
 		// reach an end point
 		var levelEndIndex = 0;
 		var levelEndpoint = function(){
+			// check end point and animate
+			var ani = game.ctrl[level].ani;
+			if (ani && ani[levelEndIndex]) {
+				var aniInfo = ani[levelEndIndex];
+				var speed = aniInfo.speed || 6;
+
+				var d1x = aniInfo.end1[0] - mePicture.x;
+				var d1y = aniInfo.end1[1] - mePicture.y;
+				var angle1 = (Math.abs(d1x) > 0.01) ? Math.atan(Math.abs(d1y/d1x)) : Math.PI/2;
+				var xspeed1 = speed * Math.cos(angle1);
+				var yspeed1 = speed * Math.sin(angle1);
+				var ox1 = mePicture.x;
+				var oy1 = mePicture.y;
+				if (d1x < 0) xspeed1 = -xspeed1;
+				if (d1y < 0) yspeed1 = -yspeed1;
+
+				if (herPicture) {
+					var d2x = aniInfo.end2[0] - herPicture.x;
+					var d2y = aniInfo.end2[1] - herPicture.y;
+					var angle2 = (Math.abs(d2x) > 0.01) ? Math.atan(Math.abs(d2y/d2x)) : Math.PI/2;
+					var xspeed2 = speed * Math.cos(angle2);
+					var yspeed2 = speed * Math.sin(angle2);
+					var ox2 = herPicture.x;
+					var oy2 = herPicture.y;
+					if (d2x < 0) xspeed2 = -xspeed2;
+					if (d2y < 0) yspeed2 = -yspeed2;
+				}
+
+				var totalFrame = Math.floor(d1x > d1y ? d1x / xspeed1 : d1y / yspeed1);
+				var curFrame = 0;
+				var tickFn = function() {
+					if (userCtrl.paused) return ;
+					if (curFrame < totalFrame) {
+						mePicture.x = ox1 + curFrame * xspeed1;
+						mePicture.y = oy1 + curFrame * yspeed1;
+						if (herPicture) {
+							herPicture.x = ox2 + curFrame * xspeed2;
+							herPicture.y = oy2 + curFrame * yspeed2;
+						}
+						++curFrame;
+					} else {
+						createjs.Ticker.removeEventListener('tick', tickFn);
+						if (aniInfo.doneLevel) {
+							doneLevel();
+						}
+					}
+				}
+				createjs.Ticker.addEventListener('tick', tickFn);
+			}
+			// show text
 			var textInfo = game.words[level].ends[levelEndIndex++];
 			if(textInfo) {
 				// show text in map
@@ -703,7 +768,7 @@ var startLevel = function(level){
 		var lightHurt = game.ctrl[level].lightHurt;
 		if(typeof(lightHurt) === 'undefined') lightHurt = 1;
 		createjs.Ticker.addEventListener('tick', function(){
-			if(userCtrl.paused) return;
+			if(userCtrl.paused || userCtrl.animating) return;
 			if(running && level > 1) meHp -= ME_ACTION_DAMAGE;
 			for(var i=0; !controlConfig.noRun && i<lights.length; i++) {
 				var a = lights[i];
@@ -739,7 +804,7 @@ var startLevel = function(level){
 		var prevCtrlY = 0;
 		createjs.Ticker.addEventListener('tick', function(){
 			running = false;
-			if(userCtrl.paused) return;
+			if(userCtrl.paused || userCtrl.animating) return;
 			// move
 			var x = 0;
 			var y = 0;
@@ -859,6 +924,12 @@ var startLevel = function(level){
 		mePicture.x = map.startX;
 		mePicture.y = map.startY;
 		mePicture.gotoAndPlay('normal');
+		if (herPicture) {
+			game.stage.addChild(herPicture);
+			herPicture.x = game.ctrl[level].p2[0];
+			herPicture.y = game.ctrl[level].p2[1];
+			herPicture.gotoAndPlay('normal');
+		}
 		if (controlConfig.shadow) {
 			var meShadow = new createjs.Container();
 			game.stage.addChild(meShadow);
@@ -990,7 +1061,7 @@ var startLevel = function(level){
 			var hpShapeAni = 0;
 			var HP_SHAPE_ANI_SPEED = 0.03;
 			createjs.Ticker.addEventListener('tick', function(){
-				if(userCtrl.paused) return;
+				if(userCtrl.paused || userCtrl.animating) return;
 				if(hpPicture.alpha <= 0.3)
 					hpShapeAni = 0;
 				if(meHp < meHpOri) {
@@ -1019,7 +1090,7 @@ var startLevel = function(level){
 		fadingRect.graphics.f('black').r(0,0,WIDTH,HEIGHT);
 		game.stage.addChild(fadingRect);
 		var fadingAni = function(){
-			if(userCtrl.paused) return;
+			if(userCtrl.paused || userCtrl.animating) return;
 			if(fadingRect.alpha <= 0) {
 				createjs.Ticker.removeEventListener('tick', fadingAni);
 				game.stage.removeChild(fadingRect);
