@@ -2,14 +2,13 @@
 <html>
 <head>
 	<meta charset="utf8">
-	<title>地图编辑器 | 明天 | LastLeaf</title>
+	<title>Map Editor | Tomorrow</title>
 	<link rel="stylesheet" type="text/css" href="main.css">
 	<script type="text/javascript" src="jquery.js"></script>
 	<script type="text/javascript" src="main.js"></script>
 </head>
 <body>
 	<div id="wrapper">
-		<h1>明天 - 地图编辑器</h1>
 		<div id="map">
 			<div id="editor">
 				<canvas id="canvas" width="960" height="540"></canvas>
@@ -20,26 +19,26 @@
 		</div>
 		<div id="settings">
 			<div>
-				<span id="extra"><input type="checkbox" id="show_extra" checked><label for="show_extra"> 显示特殊点</label></span>
-				<span id="start">起点
+				<span id="extra"><input type="checkbox" id="show_extra" checked><label for="show_extra"> Show Points</label></span>
+				<span id="start">Start
 					<input type="number" id="start_x" min="2" max="157" value="2">
 					<input type="number" id="start_y" min="2" max="87" value="2">
 				</span>
-				<span id="end">终点
+				<span id="end">Ends
 					<input type="number" id="end_x" min="2" max="158" value="158">
 					<input type="number" id="end_y" min="2" max="88" value="88">
 				</span>
-				<span id="current">当前
+				<span id="current">Current
 					<input type="number" id="current_x" min="0" max="159" value="0" disabled>
 					<input type="number" id="current_y" min="0" max="89" value="0" disabled>
 				</span>
 			</div>
-			障碍<input type="text" id="lights" value="(0,0)*10(0,20)~1">
+			Lights<input type="text" id="lights" value="(0,0)*10(0,20)~1">
 		</div>
-		<input type="button" id="generate_code" value="↓ 生成地图代码">
-		<input type="button" id="apply_code" value="↑ 应用地图代码">
-		<input type="button" id="save_code" value="保存以下代码为模板">
-		<input type="button" id="load_code" value="重载模板">
+		<input type="button" id="generate_code" value="↓ Get Code">
+		<input type="button" id="apply_code" value="↑ Apply Code">
+		<input type="button" id="save_code" value="Save as Template">
+		<input type="button" id="load_code" value="Reload Template">
 		<br>
 		<textarea id="code"></textarea>
 	</div>
