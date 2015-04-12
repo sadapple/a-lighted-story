@@ -1,8 +1,8 @@
 // Copyright 2013 LastLeaf, MIT LICENSE
 game.langs = {
 	'zh-CN': {
-		titleFont: ' "DejaVu Serif","黑体","文泉驿正黑","微软雅黑" ',
-		font: ' "DejaVu Serif","黑体","文泉驿正黑","微软雅黑" ',
+		titleFont: ' "Noto Serif","DejaVu Serif","黑体","文泉驿正黑","微软雅黑" ',
+		font: ' "Noto Serif","DejaVu Serif","黑体","文泉驿正黑","微软雅黑" ',
 		str: [
 			'正在检测浏览器兼容性……',
 			'你的浏览器不支持本游戏。',
@@ -35,8 +35,8 @@ game.langs = {
 		]
 	},
 	'en': {
-		titleFont: ' "DejaVu Serif", "sans-serif" ',
-		font: ' "DejaVu Serif", "sans-serif" ',
+		titleFont: ' "Noto Serif", "DejaVu Serif", "sans-serif" ',
+		font: ' "Noto Serif", "DejaVu Serif", "sans-serif" ',
 		str: [
 			'Detecting browser compatibilities...',
 			'Your browser does not support this game.',
