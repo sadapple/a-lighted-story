@@ -137,12 +137,19 @@
 	{
 		"noRun": true,
 		"onlyRight": true,
-		"slow": true,
 		"herColorLight": true,
 		"meColorLight": true,
 		"bgm": 0,
 		"bgimage": 22,
 		"player": 1,
-		"p2": [912, 318]
+		"p2": [912, 318],
+		"bgFadeout": 420,
+		"bgFadeoutStep": 0.0042,
+		"ani": [null, {
+			"end1": [468, 318],
+			"end2": [492, 318],
+			"speed": 1.5,
+			"doneLevel": false
+		}]
 	}
 ]
