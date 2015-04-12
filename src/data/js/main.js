@@ -533,7 +533,7 @@ document.bindReady(function(){
 	// check compatibility
 	hint.show(game.str[0]);
 	if(!HTML5Compatibility.supportAll()) {
-		hint.showLink(game.str[1], GAME_HOME_PAGE[game.settings.lang]);
+		hint.showLink(game.str[1]);
 		return;
 	}
 	try {
