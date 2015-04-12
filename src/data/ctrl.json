@@ -12,26 +12,39 @@
 		"bgm": 1
 	},
 	{
-		"bgm": 0
+		"bgm": 0,
+		"player": 1,
+		"p2": [720, 300],
+		"ani": [{
+			"end1": [924, 300],
+			"end2": [900, 300],
+			"speed": 2,
+			"doneLevel": false
+		}]
 	},
 	{
+		"follow": true,
 		"bgm": 2,
 		"bgimage": 6
 	},
 	{
+		"follow": true,
 		"bgm": 2,
 		"bgimage": 7
 	},
 	{
+		"follow": true,
 		"bgm": 2,
 		"bgimage": 8
 	},
 	{
+		"follow": true,
 		"slow": true,
 		"bgm": 2,
 		"bgimage": 9
 	},
 	{
+		"follow": true,
 		"fog": true,
 		"bgm": 2,
 		"bgimage": 10
@@ -39,50 +52,75 @@
 	{
 		"shadow": true,
 		"rightOnly": true,
-		"bgm": 3
+		"herColorLight": true,
+		"bgm": 3,
+		"player": 1,
+		"p2": [528, 270],
+		"ani": [{
+			"end1": [480, 270],
+			"end2": [984, 270],
+			"speed": 3,
+			"doneLevel": false
+		}]
 	},
 	{
 		"shadow": true,
+		"herColorLight": true,
 		"bgm": 3
 	},
 	{
 		"noStop": true,
 		"shadow": true,
+		"herColorLight": true,
 		"bgm": 3
 	},
 	{
 		"shadow": true,
-		"bgm": 3
+		"herColorLight": true,
+		"bgm": 3,
+		"bgimage": 14
 	},
 	{
 		"noRun": true,
 		"shadow": true,
 		"flash": true,
 		"onlyRight": true,
-		"bgm": 4
+		"herColorLight": true,
+		"bgm": 4,
+		"player": 2,
+		"p2": [480, 318]
 	},
 	{
 		"noRun": true,
 		"shadow": true,
 		"flash": true,
-		"bgm": 4
+		"herColorLight": true,
+		"bgm": 4,
+		"player": 2
 	},
 	{
 		"noRun": true,
 		"shadow": true,
+		"slow": true,
 		"flash": true,
-		"bgm": 4
+		"herColorLight": true,
+		"bgm": 4,
+		"player": 2,
+		"p2": [200, 120]
 	},
 	{
 		"lightHurt": 0.75,
+		"herColorLight": true,
 		"bgm": 5
 	},
 	{
 		"lightHurt": 0.5,
+		"herColorLight": true,
 		"bgm": 5
 	},
 	{
 		"lightHurt": 0.25,
+		"herColorLight": true,
 		"bgm": 5
 	},
 	{
@@ -91,13 +129,20 @@
 		"onlyRight": true,
 		"lightHurt": 0,
 		"hp": 400,
-		"bgm": 0
+		"herColorLight": true,
+		"bgm": 0,
+		"player": 1,
+		"p2": [912, 318]
 	},
 	{
 		"noRun": true,
 		"onlyRight": true,
 		"slow": true,
+		"herColorLight": true,
+		"meColorLight": true,
 		"bgm": 0,
-		"bgimage": 22
+		"bgimage": 22,
+		"player": 1,
+		"p2": [912, 318]
 	}
 ]

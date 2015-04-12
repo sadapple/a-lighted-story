@@ -12,7 +12,7 @@ var LIGHT_R_MAX = 50*6;
 // game
 var ME_HP_MAX = [5000,2000,1000,700];
 var LIGHTS_SPEED = [2,2.5,3,3.5];
-var P_STATE_CHANGE = [0.025, 0.03, 0.035, 0.04];
+var P_STATE_CHANGE = [0.02, 0.025, 0.03, 0.035];
 var ME_MOVE_SPEED = 3;
 var ME_ACTION_SPEED = 6; // no larger than 6
 var ME_SLOW_RATE = 0.5;  // slow_speed = slow_rate * normal_speed
@@ -21,10 +21,17 @@ var ME_S_DES_PER_FRAME = 0.003;
 var ME_S_START_ALPHA = 0.096;   // alpha when the shadow appear
 var FOG_R = 100;
 var FLASH_ALPHA_MIN = 0.0;
-var FLASH_ALPHA_MAX = 0.1;
+var FLASH_ALPHA_MAX = 0.2;
 var ME_ACTION_DAMAGE = 4;
 var ME_ACTION_DIF = Math.PI/8;
 var ME_DAMAGE_PER_R = 1;
+var STORY_FONT_SIZE = 28;
+var MAP_TEXT_FONT_SIZE = 26;
+var ME_COLOR = '#808080';
+var ME_COLOR_LIGHT = '#F0F9FF';
+var HER_COLOR = '#AD4653';
+var HER_COLOR_LIGHT = '#FFB8C2';
+var HER_COLOR_TEXT = '#FFB8C2';
 
 // parse a map
 
@@ -76,73 +83,98 @@ var parseMap = function(level){
 	mapBackground.graphics.f('black').r(0, 0, WIDTH, HEIGHT);
 	// draw map
 	var blur = Number(a[6]);
-	var s = a[0];
-	var block = new Array(90*160);
-	var picture = new createjs.Shape();
-	var g = picture.graphics.f('rgb(128,128,128)');
-	for(var i=0; i<2400; i++) {
-		var t = s.charCodeAt(i) - 48;
-		for(var j=5; j>=0; j--) {
-			var p = i*6+j;
-			block[p] = !(t%2);
-			t = t >> 1;
-			if(block[p])
-				g.r((p%160)*6, Math.floor(p/160)*6, 6, 6);
+	var mapStrs = a[0].split(' ');
+	var pictures = [];
+	while(mapStrs.length) {
+		var s = mapStrs.shift();
+		var block = new Array(90*160);
+		var picture = new createjs.Shape();
+		var g = picture.graphics.f('black').r(0, 0, WIDTH, HEIGHT).f('rgb(128,128,128)');
+		for(var i=0; i<2400; i++) {
+			var t = s.charCodeAt(i) - 48;
+			for(var j=5; j>=0; j--) {
+				var p = i*6+j;
+				block[p] = !(t%2);
+				t = t >> 1;
+				if(block[p])
+					g.r((p%160)*6, Math.floor(p/160)*6, 6, 6);
+			}
 		}
+		picture.filters = [ new createjs.BoxBlurFilter(6*blur+2,6*blur+2,1) ];
+		picture.cache(0,0,WIDTH,HEIGHT);
+		picture.block = block;
+		pictures.push(picture);
 	}
-	picture.filters = [ new createjs.BoxBlurFilter(6*blur+2,6*blur+2,1) ];
-	map.block = block;
 	map.picture = new createjs.Container().set({x:0,y:0});
-	map.picture.addChild(mapBackground);
-	map.picture.addChild(picture);
+	map.picture.addChild(pictures.shift());
 	// add image above if needed
 	if(game.ctrl[level].bgimage) {
 		var img = new createjs.Bitmap( game.mainResource.getResult('img' + game.ctrl[level].bgimage) );
 		map.picture.addChild(img);
 	}
-	picture.cache(0,0,WIDTH,HEIGHT);
-	// calculate wall
-	var wall = new Array(90*160);
-	for(var i=0; i<90; i++)
-		for(var j=0; j<160; j++) {
-			if(!block[i*160+j])
-				wall[i*160+j] = 0; // center can reach
-			else {
-				wall[i*160+j] = 2; // nothing can reach
-				if(blur === 1) {
-					for(var di=-1; di<=1; di++)
-						for(var dj=-1; dj<=1; dj++) {
-							if(i+di<0 || i+di>=90 || j+dj<0 || j+dj>=160) continue;
-							if(block[(i+di)*160+(j+dj)]) continue;
-							wall[i*160+j] = 1; // border can reach
-							break;
-						}
-				} else if(blur === 2) {
-					for(var di=-2; di<=2; di++)
-						for(var dj=-2; dj<=2; dj++) {
-							if(i+di<0 || i+di>=90 || j+dj<0 || j+dj>=160) continue;
-							if(block[(i+di)*160+(j+dj)]) continue;
-							wall[i*160+j] = 1; // border can reach
-							break;
-						}
-				}
+	map.nextPicture = function(){
+		if(!pictures.length) return;
+		var picture = pictures.shift();
+		picture.alpha = 0;
+		map.picture.addChildAt(picture, 1);
+		var fadeInNext = function(){
+			picture.alpha += 0.04;
+			if(picture.alpha >= 1) {
+				map.picture.removeChildAt(0);
+				calWall();
+				createjs.Ticker.removeEventListener('tick', fadeInNext);
 			}
 		}
-	map.blur = blur;
-	map.wall = wall;
+		createjs.Ticker.addEventListener('tick', fadeInNext);
+	};
+	// calculate wall
+	var calWall = function(block){
+		var block = map.picture.getChildAt(0).block;
+		var wall = new Array(90*160);
+		for(var i=0; i<90; i++)
+			for(var j=0; j<160; j++) {
+				if(!block[i*160+j])
+					wall[i*160+j] = 0; // center can reach
+				else {
+					wall[i*160+j] = 2; // nothing can reach
+					if(blur === 1) {
+						for(var di=-1; di<=1; di++)
+							for(var dj=-1; dj<=1; dj++) {
+								if(i+di<0 || i+di>=90 || j+dj<0 || j+dj>=160) continue;
+								if(block[(i+di)*160+(j+dj)]) continue;
+								wall[i*160+j] = 1; // border can reach
+								break;
+							}
+					} else if(blur === 2) {
+						for(var di=-2; di<=2; di++)
+							for(var dj=-2; dj<=2; dj++) {
+								if(i+di<0 || i+di>=90 || j+dj<0 || j+dj>=160) continue;
+								if(block[(i+di)*160+(j+dj)]) continue;
+								wall[i*160+j] = 1; // border can reach
+								break;
+							}
+					}
+				}
+			}
+		map.blur = blur;
+		map.wall = wall;
+	};
+	calWall();
 	return map;
 };
 
 // basic shape generater
 
 var generateRound = function(color, r1, r2){
-	var round = new createjs.Shape();
-	var a = (r1+r2) / 2;
-	var b = r2 - a;
-	round.graphics.f(color).arc(0,0,a,0,2*Math.PI);
-	round.filters = [ new createjs.BoxBlurFilter(b,b,1) ];
-	round.cache(-r2,-r2,r2*2,r2*2);
-	return round;
+	var container = new createjs.Container();
+	for(var i=r1; i<r2; i++) {
+		var round = new createjs.Shape();
+		round.graphics.f(color).arc(0,0,i,0,2*Math.PI);
+		round.alpha = (r2-i)/(r2-r1);
+		container.addChild(round);
+	}
+	container.cache(-r2,-r2,r2*2,r2*2);
+	return container;
 };
 
 var lightCache = new Array(LIGHT_R_MAX+1);
@@ -325,7 +357,7 @@ var startLevel = function(level){
 		var FADE_ALPHA_MIN = -1;
 		var FADE_ALPHA_STEP = 0.04;
 		var FADE_ALPHA_MAX_STD = 1;
-		var FADE_ALPHA_MAX_PER_CHAR = 0.04;
+		var FADE_ALPHA_MAX_PER_CHAR = 0.05;
 		storyContainer.alpha = -1;
 		var fadeAlphaMax = 1;
 		userCtrl.skip = false;
@@ -337,7 +369,18 @@ var startLevel = function(level){
 				else c+=3;
 			return c*FADE_ALPHA_MAX_PER_CHAR + FADE_ALPHA_MAX_STD;
 		};
+		var storyLoopFocused = true;
 		var storyLoop = function(){
+			if(!game.focused) {
+				if(storyLoopFocused && game.settings.musicOn)
+					createjs.Sound.setVolume(game.settings.volume*0.003);
+				storyLoopFocused = false;
+				if(storyContainer.alpha >= 1) return;
+			} else if(!storyLoopFocused) {
+				storyLoopFocused = true;
+				if(game.settings.musicOn)
+					createjs.Sound.setVolume(game.settings.volume/100);
+			}
 			if(i >= story.length || userCtrl.skip) {
 				userCtrl.skip = false;
 				if(i >= story.length || game.settings.levelReached >= level) {
@@ -363,24 +406,24 @@ var startLevel = function(level){
 						} else if(story[i].slice(0,8) === '!author:') {
 							storyText.font = '24px'+game.lang.font;
 							storyText.lineHeight = 36;
-							storyText.color = '#c0c0c0';
+							storyText.color = '#a0a0a0';
 							storyText.text = story[i].slice(8);
 							storyText.cache(-480, -60, 960, 240);
-							fadeAlphaMax = storyTime(story[i])*0.7;
+							fadeAlphaMax = storyTime(story[i])*0.3;
 							storyContainer.addChild(storyText);
-						} else if(story[i].slice(0,5) === '!her:') {
-							storyText.font = game.lang.storyFontSize+'px'+game.lang.font;
-							storyText.lineHeight = game.lang.storyFontSize*1.5;
-							storyText.color = '#FBB7BF';
-							storyText.text = story[i].slice(5);
+						} else if(story[i].slice(0,6) === '!long:') {
+							storyText.font = STORY_FONT_SIZE+'px'+game.lang.font;
+							storyText.lineHeight = STORY_FONT_SIZE*1.5;
+							storyText.color = (controlConfig.player === 2 ? HER_COLOR_TEXT : '#c0c0c0');
+							storyText.text = story[i].slice(6);
 							storyText.cache(-480, -30, 960, 60);
-							fadeAlphaMax = storyTime(story[i]);
+							fadeAlphaMax = storyTime(story[i])*2;
 							storyContainer.addChild(storyText);
 						}
 					} else {
-						storyText.font = game.lang.storyFontSize+'px'+game.lang.font;
-						storyText.lineHeight = game.lang.storyFontSize*1.5;
-						storyText.color = '#c0c0c0';
+						storyText.font = STORY_FONT_SIZE+'px'+game.lang.font;
+						storyText.lineHeight = STORY_FONT_SIZE*1.5;
+						storyText.color = (controlConfig.player === 2 ? HER_COLOR_TEXT : '#c0c0c0');
 						storyText.text = story[i];
 						storyText.cache(-480, -30, 960, 60);
 						fadeAlphaMax = storyTime(story[i]);
@@ -466,15 +509,12 @@ var startLevel = function(level){
 		var map = parseMap(level);
 		var mePicture = null;
 		var herPicture = null;
-		// if(map.white)
-		// 	mePicture = generatePerson('#000');
-		// else
-		// 	mePicture = generatePerson('#808080');
-		// herPicture = generatePerson('#0f0');
-		mePicture = generatePerson(game.ctrl[level].player == 2 ? 'pink' : '#808080');
+		var herColor = (game.ctrl[level].herColorLight ? HER_COLOR_LIGHT : HER_COLOR);
+		var meColor = (game.ctrl[level].meColorLight ? ME_COLOR_LIGHT : ME_COLOR);
+		mePicture = generatePerson(game.ctrl[level].player == 2 ? herColor : meColor);
 		if (game.ctrl[level].p2) {
 			// two role
-			herPicture = generatePerson(game.ctrl[level].player == 1 ? 'pink' : '#808080')
+			herPicture = generatePerson(game.ctrl[level].player == 1 ? herColor : meColor)
 		}
 		var lights = map.lights;
 		userCtrlReset();
@@ -565,10 +605,10 @@ var startLevel = function(level){
 		var levelLinkFrame = new createjs.Container();
 		pauseLayerFrame.addChild(levelLinkFrame);
 		var levelLinkSelected = 0;
-		var levelLink = function(centerX, centerY, text, selected){
+		var levelLink = function(centerX, centerY, text, selected, specialColor){
 			if(selected)
 				levelLinkFrame.addChild( (new createjs.Shape(
-					(new createjs.Graphics()).ss(2).s('rgb(128,128,128)').f('rgb(128,128,128)')
+					(new createjs.Graphics()).ss(2).s('rgb(128,128,128)').f(specialColor || 'rgb(128,128,128)')
 					.r(-20+centerX,-20+centerY,40,40)
 				)) );
 			else
@@ -576,7 +616,7 @@ var startLevel = function(level){
 					(new createjs.Graphics()).ss(2).s('rgb(128,128,128)')
 					.r(-20+centerX,-20+centerY,40,40)
 				)) );
-			levelLinkFrame.addChild( new createjs.Text(text, '16px'+game.lang.font, 'black').set({
+			levelLinkFrame.addChild( new createjs.Text(text, '16px'+game.lang.font, (specialColor ? HER_COLOR : 'black')).set({
 				textAlign: 'center',
 				textBaseline: 'middle',
 				x: centerX,
@@ -585,19 +625,18 @@ var startLevel = function(level){
 		};
 		var levelLinksUpdate = function(){
 			levelLinkFrame.removeAllChildren();
-			levelLink(75, 120, 0, !levelLinkSelected);
-			for(var i=1; i<=game.settings.levelReached; i++) {
-				var r = Math.floor((i-1)/6) + 1;
-				var c = (i-1)%6 + 2;
-				if(i === 19) {
+			for(var i=0; i<=game.settings.levelReached; i++) {
+				var r = Math.floor(i/7) + 1;
+				var c = i%7 + 1;
+				if(i === 21) {
 					r = 3;
 					c = 8;
 				}
-				levelLink(c*50+25, r*50+70, i, (i === levelLinkSelected));
+				levelLink(c*50+25, r*50+70, i+1, (i === levelLinkSelected), (game.ctrl[i].player === 2 ? HER_COLOR_LIGHT : (game.ctrl[i].meColorLight ? ME_COLOR_LIGHT : null)));
 			}
 		};
 		var pauseLayerShown = false;
-		var pauseArrowKey = 3;
+		var pauseArrowKey = false;
 		createjs.Ticker.addEventListener('tick', function(){
 			// show or hide frame
 			if(userCtrl.paused && !pauseLayerShown) {
@@ -618,19 +657,21 @@ var startLevel = function(level){
 				userCtrl.skip = false;
 				return;
 			}
-			pauseArrowKey--;
-			if(pauseArrowKey) return;
-			pauseArrowKey = 3;
 			// update level link
-			if(userCtrl.up && levelLinkSelected>=7 && levelLinkSelected<=18)
-				levelLinkSelected -= 6;
-			if(userCtrl.down && levelLinkSelected>=1 && levelLinkSelected<=12 && levelLinkSelected<=game.settings.levelReached-6)
-				levelLinkSelected += 6;
-			if(userCtrl.left && levelLinkSelected>=1) levelLinkSelected--;
-			if(userCtrl.right && levelLinkSelected<game.settings.levelReached) levelLinkSelected++;
-			if(userCtrl.up || userCtrl.down || userCtrl.left || userCtrl.right) {
-				levelLinksUpdate();
-				game.stage.update();
+			if(!pauseArrowKey) {
+				if(userCtrl.up && levelLinkSelected>=7 && levelLinkSelected<=20)
+					levelLinkSelected -= 7;
+				if(userCtrl.down && levelLinkSelected<=13 && levelLinkSelected<=game.settings.levelReached-7)
+					levelLinkSelected += 7;
+				if(userCtrl.left && levelLinkSelected>=1) levelLinkSelected--;
+				if(userCtrl.right && levelLinkSelected<game.settings.levelReached) levelLinkSelected++;
+				if(userCtrl.up || userCtrl.down || userCtrl.left || userCtrl.right) {
+					pauseArrowKey = true;
+					levelLinksUpdate();
+					game.stage.update();
+				}
+			} else {
+				if(!(userCtrl.up || userCtrl.down || userCtrl.left || userCtrl.right)) pauseArrowKey = false;
 			}
 			// action or reset
 			if(userCtrl.skip) {
@@ -698,20 +739,26 @@ var startLevel = function(level){
 					if (d2y < 0) yspeed2 = -yspeed2;
 				}
 
+				startAnimate();
 				var totalFrame = Math.floor(d1x > d1y ? d1x / xspeed1 : d1y / yspeed1);
+				if(herPicture) var totalFrame2 = Math.floor(d2x > d2y ? d2x / xspeed2 : d2y / yspeed2);
+				else var totalFrame2 = 0;
 				var curFrame = 0;
 				var tickFn = function() {
 					if (userCtrl.paused) return ;
-					if (curFrame < totalFrame) {
-						mePicture.x = ox1 + curFrame * xspeed1;
-						mePicture.y = oy1 + curFrame * yspeed1;
-						if (herPicture) {
+					if (curFrame < totalFrame || curFrame < totalFrame2) {
+						if(curFrame < totalFrame) {
+							mePicture.x = ox1 + curFrame * xspeed1;
+							mePicture.y = oy1 + curFrame * yspeed1;
+						}
+						if(curFrame < totalFrame2) {
 							herPicture.x = ox2 + curFrame * xspeed2;
 							herPicture.y = oy2 + curFrame * yspeed2;
 						}
 						++curFrame;
 					} else {
 						createjs.Ticker.removeEventListener('tick', tickFn);
+						endAnimate();
 						if (aniInfo.doneLevel) {
 							doneLevel();
 						}
@@ -721,23 +768,24 @@ var startLevel = function(level){
 			}
 			// show text
 			var textInfo = game.words[level].ends[levelEndIndex++];
+			map.nextPicture();
 			if(textInfo) {
 				// show text in map
 				var text = new createjs.Text();
-				text.font = '24px'+game.lang.font;
+				text.font = MAP_TEXT_FONT_SIZE+'px'+game.lang.font;
 				text.lineHeight = 36;
-				text.color = '#c0c0c0';
+				text.color = textInfo[4] || (controlConfig.player === 2 ? HER_COLOR_LIGHT : '#fff');
 				text.text = textInfo[0];
 				text.textAlign = textInfo[3] || 'center';
 				text.textBaseline = 'middle';
 				text.x = textInfo[1] || 480;
 				text.y = textInfo[2] || 270;
-				text.filters = [ new createjs.BoxBlurFilter(0.5,0.5,1) ];
-				if(textInfo[3] === 'left')
+				text.filters = [ new createjs.BoxBlurFilter(1,1,1) ];
+				if(text.textAlign === 'left')
 					text.cache(0, -20, 960, 40);
-				else if(textInfo[3] === 'center')
+				else if(text.textAlign === 'center')
 					text.cache(-480, -20, 960, 40);
-				else if(textInfo[3] === 'right')
+				else if(text.textAlign === 'right')
 					text.cache(-960, -20, 960, 40);
 				mapTextLayer.removeAllChildren();
 				mapTextLayer.addChild(text);
@@ -749,10 +797,15 @@ var startLevel = function(level){
 				createjs.Ticker.addEventListener('tick', fadeInStep);
 				if(!map.endX.length) {
 					// end level in several seconds
+					startAnimate();
 					var waitTicks = 128;
 					createjs.Ticker.addEventListener('tick', function(){
+						if (userCtrl.paused) return ;
 						waitTicks--;
-						if(!waitTicks) doneLevel();
+						if(!waitTicks) {
+							endAnimate();
+							doneLevel();
+						}
 					});
 				}
 			} else if(!map.endX.length) {
@@ -776,6 +829,18 @@ var startLevel = function(level){
 						meHp -= ME_R*2*ME_DAMAGE_PER_R*lightHurt;
 					else
 						meHp -= (a.r-d)*ME_DAMAGE_PER_R*lightHurt;
+				}
+				if(follower) {
+					dx = a.x - follower.x;
+					dy = a.y - follower.y;
+					var d2 = Math.sqrt(dx*dx + dy*dy) - ME_R;
+					if(d2 <= a.r) {
+						if(a.r-d2 > ME_R*2)
+							meHp -= ME_R*2*ME_DAMAGE_PER_R*lightHurt * 0.5;
+						else
+							meHp -= (a.r-d2)*ME_DAMAGE_PER_R*lightHurt * 0.5;
+						console.info(meHp);
+					}
 				}
 			}
 			if(meHp <= 0) {
@@ -915,6 +980,31 @@ var startLevel = function(level){
 		// show map
 		game.stage.addChild(map.picture);
 
+		// add her following me if needed
+		var follower = null;
+		if(controlConfig.follow) {
+			var follower = generatePerson(HER_COLOR);
+			follower.x = map.startX - 24;
+			follower.y = map.startY;
+			follower.gotoAndPlay('normal');
+			game.stage.addChild(follower);
+			var FOLLOW_LATENCY = 10;
+			var followPos = [];
+			createjs.Ticker.addEventListener('tick', function(){
+				if(userCtrl.paused) return;
+				followPos.push([mePicture.x, mePicture.y]);
+				while(followPos.length > FOLLOW_LATENCY) {
+					var pos = followPos[0];
+					var dx = pos[0] - mePicture.x;
+					var dy = pos[1] - mePicture.y;
+					if(dx*dx + dy*dy < 24*24) break;
+					follower.x = pos[0];
+					follower.y = pos[1];
+					followPos.shift();
+				}
+			});
+		}
+
 		// show me
 		game.stage.addChild(mePicture);
 		mePicture.x = map.startX;
@@ -950,26 +1040,26 @@ var startLevel = function(level){
 		}
 
 		// add flash layer
+		var lightsLayer = new createjs.Container().set({x:0,y:0});
+		game.stage.addChild(lightsLayer);
 		if (controlConfig.flash) {
 			var flash = new createjs.Shape().set({alpha: FLASH_ALPHA_MAX});;
 			flash.graphics.f('black').dr(0, 0, WIDTH, HEIGHT);
 			game.stage.addChild(flash);
-			var sp = -0.01;
+			var sp = -0.005;
 			createjs.Ticker.addEventListener('tick', function() {
 				if(userCtrl.paused) return;
 				flash.alpha += sp;
 				if (flash.alpha >= FLASH_ALPHA_MAX) {
-					sp = -0.01 * (0.5 + Math.random());
+					sp = -0.005 * (0.5 + Math.random());
 				}
 				if (flash.alpha <= FLASH_ALPHA_MIN) {
-					sp  = 0.01 * (0.5 + Math.random());
+					sp  = 0.005 * (0.5 + Math.random());
 				}
 			});
 		}
 
 		// update lights
-		var lightsLayer = new createjs.Container().set({x:0,y:0});
-		game.stage.addChild(lightsLayer);
 		var lightsSpeed = LIGHTS_SPEED[game.settings.difficulty];
 		createjs.Ticker.addEventListener('tick', function(){
 			if(userCtrl.paused) return;
@@ -1086,7 +1176,7 @@ var startLevel = function(level){
 		fadingRect.graphics.f('black').r(0,0,WIDTH,HEIGHT);
 		game.stage.addChild(fadingRect);
 		var fadingAni = function(){
-			if(userCtrl.paused || userCtrl.animating) return;
+			if(userCtrl.paused) return;
 			if(fadingRect.alpha <= 0) {
 				createjs.Ticker.removeEventListener('tick', fadingAni);
 				game.stage.removeChild(fadingRect);
