@@ -288,7 +288,6 @@ var startLevel = function(level){
 				game.started = false;
 				createjs.Sound.stop();
 				createjs.Ticker.removeAllEventListeners('tick');
-				if(MOBILE) game.mouseFuncRemove();
 				window.removeEventListener('keydown', game.keyDownFunc);
 				window.removeEventListener('keyup', game.keyUpFunc);
 				game.showCover();
@@ -494,6 +493,7 @@ var startLevel = function(level){
 				}
 			}
 		});
+		return container;
 	};
 
 	// show map
@@ -553,6 +553,21 @@ var startLevel = function(level){
 		};
 		var doneLevel = function(){
 			game.settings.curLevel++;
+			if(controlConfig.bgFadeout) {
+				var fadeFrame = controlConfig.bgFadeout;
+				var fadeStep = controlConfig.bgFadeoutStep;
+				createjs.Ticker.addEventListener('tick', function(){
+					if(userCtrl.paused) return;
+					map.picture.alpha -= fadeStep;
+					lightsLayer.alpha -= fadeStep;
+					cloudsLayer.alpha -= fadeStep;
+					fadeFrame--;
+					if(!fadeFrame) levelEnd(function(){
+						startLevel(game.settings.curLevel);
+					});
+				});
+				return;
+			}
 			levelEnd(function(){
 				startLevel(game.settings.curLevel);
 			});
@@ -715,7 +730,7 @@ var startLevel = function(level){
 			var ani = game.ctrl[level].ani;
 			if (ani && ani[levelEndIndex]) {
 				var aniInfo = ani[levelEndIndex];
-				var speed = aniInfo.speed || 6;
+				var speed = aniInfo.speed;
 
 				var d1x = aniInfo.end1[0] - mePicture.x;
 				var d1y = aniInfo.end1[1] - mePicture.y;
@@ -740,8 +755,8 @@ var startLevel = function(level){
 				}
 
 				startAnimate();
-				var totalFrame = Math.floor(d1x > d1y ? d1x / xspeed1 : d1y / yspeed1);
-				if(herPicture) var totalFrame2 = Math.floor(d2x > d2y ? d2x / xspeed2 : d2y / yspeed2);
+				var totalFrame = Math.floor(Math.abs(d1x) > Math.abs(d1y) ? d1x / xspeed1 : d1y / yspeed1);
+				if(herPicture) var totalFrame2 = Math.floor(Math.abs(d2x) > Math.abs(d2y) ? d2x / xspeed2 : d2y / yspeed2);
 				else var totalFrame2 = 0;
 				var curFrame = 0;
 				var tickFn = function() {
@@ -1121,8 +1136,7 @@ var startLevel = function(level){
 		game.stage.addChild(mapTextLayer);
 
 		// show clouds
-		if(!MOBILE)
-			cloudsStart();
+		var cloudsLayer = cloudsStart();
 
 		// show hp from level 1
 		if(level > 0) {
@@ -1316,9 +1330,6 @@ game.start = function(){
 		39: keyEndRight,
 		68: keyEndRight
 	};
-
-	// mouse event
-	if(MOBILE) game.mouseFuncRemove = function(){};
 
 	// basic listeners
 	game.keyDownFunc = function(e){
