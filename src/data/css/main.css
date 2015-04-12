@@ -3,6 +3,7 @@ body {
 	background: #000;
 	color: #fff;
 	overflow: hidden;
+	font: "sans-serif";
 }
 a, a:visited {
 	color: #00d2ff;

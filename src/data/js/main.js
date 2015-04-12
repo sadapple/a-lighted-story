@@ -88,7 +88,7 @@ game.showCover = function(){
 	lastleafLink.getChildAt(1).alpha = 0.8;
 	lastleafLink.getChildAt(2).visible = false;
 	lastleafLink.x = 280;
-	lastleafLink.y = -15;
+	lastleafLink.y = -16;
 	lastleafLink.scaleX = 0.6;
 	lastleafLink.scaleY = 0.6;
 	lastleafLink.addEventListener('mouseover', function(){
@@ -106,7 +106,7 @@ game.showCover = function(){
 	bottomBar.addChild(lastleafLink);
 
 	// show license link
-	var licenseLink = game.createTextButton(game.str[3], 18, '#000', -320, 0, function(){
+	var licenseLink = game.createTextButton(game.str[3], 16, '#000', -320, 0, function(){
 		if(location.protocol !== 'resource:')
 			window.open('license_'+game.settings.lang+'.html');
 		else
@@ -115,30 +115,35 @@ game.showCover = function(){
 	bottomBar.addChild(licenseLink);
 
 	// show about link
-	var aboutLink = game.createTextButton('CREDIT', 18, '#000', -200, 0, function(){
+	var aboutLink = game.createTextButton('CREDIT', 16, '#000', -200, 0, function(){
 		if(location.protocol !== 'resource:')
-			window.open('change_logs.html');
+			window.open('credit.html');
 		else
-			location.href = 'change_logs.html?showback';
+			location.href = 'credit.html?showback';
 	});
 	bottomBar.addChild(aboutLink);
 
+	// show github link
+	if(location.protocol !== 'resource:') {
+		var aboutLink = game.createTextButton('GitHub', 16, '#000', -80, 0, function(){
+			window.open('https://github.com/MistyMiracle/a-lighted-story');
+		});
+		bottomBar.addChild(aboutLink);
+	}
+
 	// show subtitle
-	var subtitle = game.createTextButton(game.str[4], 18, '#000', 160, 0, function(){
+	var subtitle = game.createTextButton(game.str[4], 16, '#000', 160, 0, function(){
 		if(location.protocol !== 'resource:')
 			window.open('http://github.com/LastLeaf/Tomorrow');
 	});
 	bottomBar.addChild(subtitle);
 
 	// show title
-	if(game.settings.lang === 'zh-CN')
-		document.title = '明天 | LastLeaf';
-	else
-		document.title = 'Tomorrow | LastLeaf';
+	document.title = 'A Lighted Story';
 	var titleImg = new createjs.Bitmap(res.getResult('title'));
 	game.stage.addChild(titleImg);
 	titleImg.x = titleImg.cx = (WIDTH - titleImg.image.width) / 2;
-	titleImg.y = titleImg.cy = 40;
+	titleImg.y = titleImg.cy = 240 - titleImg.image.height;
 	titleImg.alpha = 0.8;
 
 	// show progress bar
@@ -193,11 +198,6 @@ game.showCover = function(){
 	var resourceLoaded = function(e){
 		var q = game.mainResource = e.target;
 		progress.c().f('#888').r(0, 0, 800, 3);
-		// update title for language changing
-		if(game.settings.lang === 'zh-CN')
-			document.title = '明天 | LastLeaf';
-		else
-			document.title = 'Tomorrow | LastLeaf';
 		titleImg.image = q.getResult('tomorrow');
 		// get results
 		if(location.protocol !== 'file:' && location.protocol !== 'resource:') {
@@ -324,7 +324,7 @@ game.showCover = function(){
 		});
 		startButton.addEventListener('mouseover', function(){
 			if(game.settings.curLevel)
-				hint.show(game.str[19].replace('%1', game.settings.curLevel), 3000);
+				hint.show(game.str[19].replace('%1', game.settings.curLevel+1), 3000);
 			else
 				hint.show(game.str[20], 3000);
 		});
@@ -425,6 +425,7 @@ game.showCover = function(){
 				{id:'img8', src:'image/8.png'},
 				{id:'img9', src:'image/9.png'},
 				{id:'img10', src:'image/10.png'},
+				{id:'img14', src:'image/14.png'},
 				{id:'img22', src:'image/22.png'},
 				{src:'js/levels.js?v='+VERSION}
 			]);
@@ -465,6 +466,7 @@ game.showCover = function(){
 				{id:'img8', src:'image/8.png'},
 				{id:'img9', src:'image/9.png'},
 				{id:'img10', src:'image/10.png'},
+				{id:'img14', src:'image/14.png'},
 				{id:'img22', src:'image/22.png'},
 				{src:'js/levels.js'}
 			]);
@@ -531,7 +533,7 @@ document.bindReady(function(){
 	// check compatibility
 	hint.show(game.str[0]);
 	if(!HTML5Compatibility.supportAll()) {
-		hint.showLink(game.str[1], GAME_HOME_PAGE[game.settings.lang]);
+		hint.showLink(game.str[1]);
 		return;
 	}
 	try {
