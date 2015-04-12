@@ -34,7 +34,7 @@ We replotted this game to make it better.
 # Technology Details #
 
 * HTML5. It is an HTML5 game using canvas.
-* [Createjs](https://github.com/CreateJS). Createjs is a  suite of open source libraries and tools for building rich interactive content on open web technologies. We use [EaselJS](https://github.com/CreateJS/EaselJS) library to handle our drawing on the canvas.
+* [CreateJS](https://github.com/CreateJS). CreateJS is a  suite of open source libraries and tools for building rich interactive content on open web technologies. We use [EaselJS](https://github.com/CreateJS/EaselJS) library to handle our drawing on the canvas.
 
 # How to Fork this Game #
 
@@ -44,7 +44,7 @@ This game is a bit more complicated than the original game _Tomorrow_. You might
 
 ## Tools ##
 
-For coding, just use any editor you like. You would like [CreateJS Docs](http://www.createjs.com/#Docs) while coding.
+For coding, just use any editor you like. You would like [CreateJS Docs](http://www.CreateJS.com/#Docs) while coding.
 
 For images, SVG images can be edited with Inkscape. However, the code accepts common jpg and png files, so you can just draw with anything.
 
@@ -92,3 +92,4 @@ The [KONGREGATE version](http://www.kongregate.com/games/lastleaf/tomorrow) of t
 # LICENSE #
 
 The content of this game is under [Creative Commons Attribution-ShareAlike 4.0 International](http://creativecommons.org/licenses/by-sa/4.0/). The software of this game is under [MIT LICENSE](http://www.opensource.org/licenses/mit-license.html).
+Google's [Noto Serif](https://www.google.com/get/noto) font is under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
