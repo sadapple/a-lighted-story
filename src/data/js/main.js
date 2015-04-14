@@ -7,7 +7,7 @@ var FPS = 32;
 var WIDTH = 960;
 var HEIGHT = 540;
 var USE_ADVANCED_LOADING = false;
-var STORAGE_ID = 'tomorrow';
+var STORAGE_ID = 'a-lighted-story';
 var STORAGE_VERSION = VERSION;
 var DEFAULT_SETTINGS = {
 	version: STORAGE_VERSION,
@@ -507,6 +507,11 @@ document.bindReady(function(){
 
 	// read settings
 	try {
+		if(!localStorage[STORAGE_ID]) {
+			// fallback to "tomorrow" item on published site
+			if(location.hostname === 'mistymiracle.github.io' && localStorage['tomorrow'])
+				localStorage[STORAGE_ID] = localStorage['tomorrow'];
+		}
 		game.settings = JSON.parse(localStorage[STORAGE_ID]);
 		if(game.settings.version !== STORAGE_VERSION) {
 			// update settings
