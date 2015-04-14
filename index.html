@@ -1,8 +1,63 @@
+<!DOCTYPE html>
 <html>
 <head>
-	<title>redirecting</title>
-	<meta http-equiv="refresh" content="0;url=src/">
+	<meta charset="UTF-8">
+	<title>A Lighted Story</title>
+	<style>
+		body {
+			margin: 40px auto;
+			width: 800px;
+			background: black;
+			font: 'sans-serif';
+		}
+		hr {
+			border: 0 none;
+			padding: 0;
+			margin: 0 0 40px;
+			border-top: 3px solid #808080;
+		}
+		img {
+			margin: 0 50px 20px;
+		}
+		p {
+			color: #c0c0c0;
+			text-align: center;
+			margin: 20px 0;
+			font-size: 18px;
+		}
+		#enter {
+			cursor: pointer;
+		}
+		#enter:hover {
+			color: #00d2ff;
+		}
+	</style>
 </head>
 <body>
+	<div id="wrapper">
+		<img src="src/data/image/title_en.png">
+		<hr>
+		<p id="hint"><noscript>Please enable JavaScript support of your browser.</noscript></p>
+		<p><span id="enter"></span></p>
+	</div>
+	<script type="text/javascript">
+		// detect mobile devices
+		if('ontouchstart' in document.documentElement) {
+			var hint = document.getElementById('hint');
+			var enter = document.getElementById('enter');
+			if(navigator.language === 'zh-CN' || navigator.userLanguage === 'zh-CN') {
+				hint.innerHTML = '这个游戏需要PC键盘，并将自动下载几MB的数据';
+				enter.innerHTML = '进入游戏 &gt;';
+			} else {
+				hint.innerHTML = 'This game requires a PC keyboard. Several MBs of data will be auto downloaded.';
+				enter.innerHTML = 'Enter Game &gt;';
+			}
+			enter.onclick = function(){
+				location.href = 'src/index.html';
+			};
+		} else {
+			location.href = 'src/index.html';
+		}
+	</script>
 </body>
 </html>
